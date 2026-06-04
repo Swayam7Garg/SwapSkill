@@ -4,9 +4,15 @@ let io: SocketIOServer | null = null;
 const userSockets = new Map<string, string>(); // Maps userId -> socketId
 
 export const initSocket = (server: any) => {
+  const allowedOrigins = [
+    process.env.FRONTEND_BASE_URL,
+    process.env.FROTEND_BASE_URL,
+    "http://localhost:3000"
+  ].filter(Boolean) as string[];
+
   io = new SocketIOServer(server, {
     cors: {
-      origin: "*", // Adjust in production
+      origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
       methods: ["GET", "POST", "PATCH", "DELETE"]
     }
   });

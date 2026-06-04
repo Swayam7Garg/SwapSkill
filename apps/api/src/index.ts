@@ -30,9 +30,14 @@ connectDB();
 // Configure Socket.io
 initSocket(server);
 
-// Middlewares
+const allowedOrigins = [
+  process.env.FRONTEND_BASE_URL,
+  process.env.FROTEND_BASE_URL,
+  "http://localhost:3000"
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: "*",
+  origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "x-mock-user-id"]
 }));
