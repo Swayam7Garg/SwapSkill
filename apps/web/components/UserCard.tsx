@@ -68,7 +68,7 @@ export default function UserCard({
             {hasCompatibility && (
               <div className="px-2.5 py-1 rounded border border-white/20 bg-white/10 flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider text-white shrink-0">
                 <CheckCircle2 className="w-3 h-3 text-white/80" />
-                <span>{compatibilityScore * 10}% Match</span>
+                <span>{compatibilityScore}% Match</span>
               </div>
             )}
           </div>

@@ -67,9 +67,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen w-screen overflow-hidden bg-background flex flex-col md:flex-row">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-background subtle-border border-r flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30 crosshairs">
+      <aside className="w-full md:w-64 bg-background subtle-border md:border-r border-b md:border-b-0 flex flex-col justify-between shrink-0 h-auto md:h-full crosshairs">
         <div className="flex flex-col flex-1">
           {/* Logo */}
           <div className="h-16 flex items-center gap-2.5 px-6 border-b border-white/5">
@@ -82,23 +82,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 px-4 py-6 flex flex-col gap-2 overflow-y-auto">
+          <nav className="flex-1 px-4 py-2 md:py-6 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto no-scrollbar">
             {navigation.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded text-xs font-mono uppercase tracking-wider transition-all duration-300 group relative ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded text-xs font-mono uppercase tracking-wider transition-all duration-300 group relative whitespace-nowrap ${
                     isActive
-                      ? "bg-white/[0.04] border border-white/10 text-white"
-                      : "text-white/50 hover:text-white hover:bg-white/[0.02]"
+                      ? "text-white border border-white/20 bg-white/[0.02] shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+                      : "text-white/50 border border-transparent hover:text-white hover:bg-white/[0.02]"
                   }`}
                 >
-                  {/* Left solid line for active state */}
-                  {isActive && (
-                    <div className="absolute left-0 top-3 bottom-3 w-[2px] bg-white/80" />
-                  )}
                   <item.icon
                     className={`w-4 h-4 transition-transform group-hover:scale-105 ${
                       isActive ? "text-white" : "text-white/50 group-hover:text-white"
@@ -111,8 +107,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        {/* Footer profile summary */}
-        <div className="p-4 border-t border-white/5 bg-white/[0.01]">
+        {/* Footer profile summary (Hidden on mobile) */}
+        <div className="p-4 border-t border-white/5 bg-white/[0.01] hidden md:block">
           <div className="flex items-center gap-3 px-2 py-1.5">
             <img
               src={user?.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg"}
@@ -133,9 +129,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top Header Bar */}
-        <header className="h-16 bg-background subtle-border border-b flex items-center justify-between px-8 sticky top-0 z-20 crosshairs">
+        <header className="h-16 shrink-0 bg-background subtle-border border-b flex items-center justify-between px-4 md:px-8 crosshairs">
           <div className="flex items-center gap-2">
             <span className="text-xs text-white/40 font-medium capitalize">
               {pathname === "/dashboard" ? "Overview" : pathname.replace("/", "").replace("-", " ")}
@@ -172,12 +168,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Dynamic page content */}
-        <main className="flex-1 p-8 overflow-y-auto crosshairs crosshairs-inner relative">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto relative crosshairs">
+          <div className="crosshairs-inner" />
           <div className="max-w-7xl mx-auto">{children}</div>
         </main>
         
         {/* Tracking Overlay (Aesthetic) */}
-        <div className="fixed bottom-4 right-8 flex gap-8 text-[9px] font-mono text-white/40 uppercase tracking-widest pointer-events-none z-50">
+        <div className="hidden md:flex fixed bottom-4 right-8 gap-8 text-[9px] font-mono text-white/40 uppercase tracking-widest pointer-events-none z-50">
           <div className="flex flex-col gap-1">
             <span className="flex justify-between w-24"><span>Cursor X:</span><span className="text-white/80">SYS</span></span>
             <span className="flex justify-between w-24"><span>Cursor Y:</span><span className="text-white/80">ACT</span></span>

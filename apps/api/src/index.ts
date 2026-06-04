@@ -4,8 +4,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cron from "node-cron";
 
+import path from "path";
+import { fileURLToPath } from "url";
+
 // Load environment variables
-dotenv.config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 import { initSocket } from "./utils/socket.js";
 import { connectDB } from "./config/db.js";

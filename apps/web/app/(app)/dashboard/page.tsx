@@ -288,7 +288,7 @@ export default function DashboardPage() {
                         <p className="text-[10px] text-white/40 truncate">{m.college}</p>
                       </div>
                       <span className="text-[9px] font-mono uppercase tracking-wider text-white bg-white/10 border border-white/20 px-2 py-0.5 rounded shrink-0">
-                        {m.compatibilityScore * 10}% match
+                        {m.compatibilityScore}% match
                       </span>
                     </div>
 

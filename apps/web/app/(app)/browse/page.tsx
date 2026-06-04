@@ -1,16 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { apiFetch } from "../../../lib/api";
 import BrowseFilters from "../../../components/BrowseFilters";
 import UserCard from "../../../components/UserCard";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 export default function BrowsePage() {
+  const searchParams = useSearchParams();
+  
   // Filter States
-  const [category, setCategory] = useState("");
-  const [teachQuery, setTeachQuery] = useState("");
-  const [learnQuery, setLearnQuery] = useState("");
+  const [category, setCategory] = useState(searchParams.get("category") || "");
+  const [teachQuery, setTeachQuery] = useState(searchParams.get("teach") || "");
+  const [learnQuery, setLearnQuery] = useState(searchParams.get("learn") || "");
   
   // Pagination & Loading States
   const [users, setUsers] = useState<any[]>([]);
