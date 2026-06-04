@@ -311,7 +311,7 @@ export const generateStudyGuide = async (req: Request, res: Response) => {
     } else {
       try {
         const prompt = `
-You are an expert AI teaching assistant for a peer-to-peer student skill-barter platform called SkillSwap.
+You are an expert AI teaching assistant for a peer-to-peer student skill-barter platform called ExchangeSkill.
 Your goal is to generate a highly personalized, structured 1-hour session study guide / lesson plan for a swap session.
 
 Session Details:

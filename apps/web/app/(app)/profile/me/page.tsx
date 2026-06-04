@@ -199,7 +199,7 @@ export default function MyProfilePage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-xs font-bold text-white rounded-xl flex items-center gap-2 hover:opacity-95 transition-all disabled:opacity-50 self-start"
+                className="px-5 py-2.5 bg-white text-black text-xs font-mono uppercase tracking-wider rounded flex items-center gap-2 hover:bg-white/90 transition-all disabled:opacity-50 self-start"
               >
                 <Save className="w-4 h-4" />
                 <span>{saving ? "Saving Changes..." : "Save Profile"}</span>
@@ -208,22 +208,22 @@ export default function MyProfilePage() {
           </div>
 
           {/* Teach Skills list & selector */}
-          <div className="glass-panel border border-white/5 rounded-2xl p-6 space-y-6">
+          <div className="glass-panel border border-white/5 rounded p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <div>
-                <h2 className="text-base font-bold text-white">Skills I Can Teach</h2>
+                <h2 className="text-xs font-bold text-white font-mono uppercase tracking-wider">Skills I Can Teach</h2>
                 <p className="text-[10px] text-white/40 mt-0.5">These will be listed for other students looking to learn.</p>
               </div>
               <button
                 onClick={() => setActiveSelectorType(activeSelectorType === "teach" ? null : "teach")}
-                className="px-3.5 py-1.5 bg-primary/10 border border-primary/20 hover:bg-primary/20 text-xs font-semibold text-primary rounded-xl transition-all"
+                className="px-3.5 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-mono uppercase tracking-wider text-white rounded transition-all"
               >
                 {activeSelectorType === "teach" ? "Close Selector" : "Add Tech/Skill"}
               </button>
             </div>
 
             {activeSelectorType === "teach" && (
-              <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] animate-slide-in">
+              <div className="p-4 rounded border border-white/5 bg-white/[0.01] animate-slide-in">
                 <SkillSelector
                   type="teach"
                   existingSkillIds={teachIds}
@@ -255,22 +255,22 @@ export default function MyProfilePage() {
           </div>
 
           {/* Learn Skills list & selector */}
-          <div className="glass-panel border border-white/5 rounded-2xl p-6 space-y-6">
+          <div className="glass-panel border border-white/5 rounded p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <div>
-                <h2 className="text-base font-bold text-white">Skills I Want to Learn</h2>
+                <h2 className="text-xs font-bold text-white font-mono uppercase tracking-wider">Skills I Want to Learn</h2>
                 <p className="text-[10px] text-white/40 mt-0.5">We use these to calculate matches with potential teachers.</p>
               </div>
               <button
                 onClick={() => setActiveSelectorType(activeSelectorType === "learn" ? null : "learn")}
-                className="px-3.5 py-1.5 bg-primary/10 border border-primary/20 hover:bg-primary/20 text-xs font-semibold text-primary rounded-xl transition-all"
+                className="px-3.5 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-mono uppercase tracking-wider text-white rounded transition-all"
               >
                 {activeSelectorType === "learn" ? "Close Selector" : "Add Tech/Skill"}
               </button>
             </div>
 
             {activeSelectorType === "learn" && (
-              <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] animate-slide-in">
+              <div className="p-4 rounded border border-white/5 bg-white/[0.01] animate-slide-in">
                 <SkillSelector
                   type="learn"
                   existingSkillIds={learnIds}
@@ -306,33 +306,33 @@ export default function MyProfilePage() {
         <div className="space-y-8">
           
           {/* User profile card preview */}
-          <div className="glass-panel border border-white/5 rounded-2xl p-6 text-center space-y-4 flex flex-col items-center">
+          <div className="glass-panel border border-white/5 rounded p-6 text-center space-y-4 flex flex-col items-center">
             <img
               src={user.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg"}
               alt={user.name}
-              className="w-20 h-20 rounded-full border-2 border-primary object-cover bg-white/5"
+              className="w-16 h-16 rounded border border-white/25 object-cover bg-white/5"
             />
             <div>
-              <h3 className="font-extrabold text-lg text-white">{user.name}</h3>
-              <p className="text-xs text-white/45 flex items-center gap-1 mt-0.5 justify-center">
+              <h3 className="font-extrabold text-sm text-white">{user.name}</h3>
+              <p className="text-[10px] text-white/45 flex items-center gap-1 mt-0.5 justify-center font-mono uppercase tracking-wider">
                 <GraduationCap className="w-4 h-4 shrink-0 text-white/40" />
                 <span>{user.college || "No affiliated college"}</span>
               </p>
             </div>
             
-            <div className="flex gap-1 items-center justify-center border-t border-white/5 pt-4 w-full">
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <div className="flex gap-1 items-center justify-center border-t border-white/5 pt-4 w-full text-xs font-mono uppercase tracking-wider">
+              <Star className="w-4 h-4 text-white/60 fill-white/60" />
               <span className="text-sm font-bold text-white">
                 {user.avgRating && user.avgRating > 0 ? user.avgRating.toFixed(1) : "New"}
               </span>
-              <span className="text-xs text-white/40 font-medium">/ 5 Rating Score</span>
+              <span className="text-[10px] text-white/40">/ 5 Rating Score</span>
             </div>
           </div>
 
           {/* Peer Reviews History */}
-          <div className="glass-panel border border-white/5 rounded-2xl p-6 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-              <BookOpen className="w-4 h-4 text-[#e91e8c]" />
+          <div className="glass-panel border border-white/5 rounded p-6 space-y-4">
+            <h3 className="text-xs font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3 font-mono uppercase tracking-wider">
+              <BookOpen className="w-4 h-4 text-white/70" />
               <span>Peer Tutor Reviews</span>
             </h3>
 
@@ -345,17 +345,17 @@ export default function MyProfilePage() {
             ) : (
               <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
                 {ratingsData.ratings.map((rate: any) => (
-                  <div key={rate.id} className="p-3 rounded-xl border border-white/5 bg-white/[0.01] space-y-2">
+                  <div key={rate.id} className="p-3 rounded border border-white/5 bg-white/[0.01] space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-white">{rate.rater.name}</span>
-                      <div className="flex items-center gap-0.5 text-yellow-400">
+                      <div className="flex items-center gap-0.5 text-white/60">
                         {[...Array(rate.score)].map((_, i) => (
-                          <Star key={i} className="w-2.5 h-2.5 fill-yellow-400" />
+                          <Star key={i} className="w-2.5 h-2.5 fill-white/60" />
                         ))}
                       </div>
                     </div>
-                    {rate.comment && <p className="text-[10px] text-white/60 italic">"{rate.comment}"</p>}
-                    <p className="text-[8px] text-white/35 text-right font-medium">
+                    {rate.comment && <p className="text-[10px] text-white/60 italic font-mono">"{rate.comment}"</p>}
+                    <p className="text-[8px] text-white/35 text-right font-medium font-mono">
                       {new Date(rate.createdAt).toLocaleDateString()} on {rate.session.skill.name}
                     </p>
                   </div>

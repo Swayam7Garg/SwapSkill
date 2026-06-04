@@ -21,7 +21,7 @@ export default function SignUpPage() {
           <Sparkles className="w-5 h-5 text-white" />
         </div>
         <h2 className="font-extrabold text-2xl tracking-tight text-white">
-          Create <span className="text-gradient-primary">SkillSwap</span> Account
+          Create <span className="text-gradient-primary">ExchangeSkill</span> Account
         </h2>
         <p className="text-xs text-white/50">Register to start swapping skills with campus peers.</p>
       </div>

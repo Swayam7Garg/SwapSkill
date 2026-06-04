@@ -55,7 +55,7 @@ const InnerAuthProvider = ({ children }: { children: React.ReactNode }) => {
           method: "POST",
           clerkToken: token,
           body: JSON.stringify({
-            name: clerkUser.fullName || clerkUser.username || "SkillSwapper",
+            name: clerkUser.fullName || clerkUser.username || "ExchangeSkiller",
             email: clerkUser.primaryEmailAddress?.emailAddress || "",
             avatarUrl: clerkUser.imageUrl || "",
             college: "", // Filled in profile edit

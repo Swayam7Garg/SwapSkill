@@ -41,10 +41,10 @@
     border-color: hsl(var(--border));
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: #0a0a0a;
+    color: #ededed;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background-image: 
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
       radial-gradient(at 50% 0%, rgba(255, 255, 255, 0.03) 0px, transparent 60%),
       radial-gradient(at 0% 100%, rgba(255, 255, 255, 0.01) 0px, transparent 40%);
     background-attachment: fixed;
@@ -177,4 +177,30 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* Crosshairs for corners */
+.crosshairs {
+  position: relative;
+}
+.crosshairs::before,
+.crosshairs::after,
+.crosshairs-inner::before,
+.crosshairs-inner::after {
+  content: '+';
+  position: absolute;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  line-height: 1;
+}
+.crosshairs::before { top: -6px; left: -3px; }
+.crosshairs::after { top: -6px; right: -3px; }
+.crosshairs-inner { position: absolute; inset: 0; pointer-events: none; }
+.crosshairs-inner::before { bottom: -5px; left: -3px; }
+.crosshairs-inner::after { bottom: -5px; right: -3px; }
+
+/* Subtle borders */
+.subtle-border {
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }

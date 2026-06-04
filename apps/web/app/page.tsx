@@ -275,7 +275,7 @@ export default function LandingPage() {
         <div className="absolute left-20 top-6 font-mono text-[9px] text-white/30 space-y-1">
           <div className="flex items-center gap-1.5">
             <Terminal className="w-3 h-3 text-white/50" />
-            <span>SYS_NODE // SKILLSWAP_NET</span>
+            <span>SYS_NODE // EXCHANGESKILL_NET</span>
           </div>
           <div>VIEWPORT // {activeSection.toUpperCase()}</div>
         </div>
@@ -318,7 +318,7 @@ export default function LandingPage() {
                 <Sparkles className="w-3.5 h-3.5 text-white/80" />
               </div>
               <span className="text-md font-bold tracking-tight text-white font-mono">
-                SKILLSWAP // PROT
+                EXCHANGESKILL // PROT
               </span>
             </Link>
 
@@ -422,7 +422,7 @@ export default function LandingPage() {
             {/* Left Column: Text Panel (sticky viewport) */}
             <div className="lg:col-span-5 flex flex-col justify-center min-h-[40vh] lg:min-h-0 relative pr-4">
               <span className="text-[10px] font-mono tracking-[0.2em] mb-4 text-white/30 uppercase">
-                WHY SKILLSWAP // CAPABILITIES
+                WHY EXCHANGESKILL // CAPABILITIES
               </span>
               <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.08] mb-12 uppercase">
                 A Unified Campus Ecosystem
@@ -698,7 +698,7 @@ export default function LandingPage() {
                   <Sparkles className="w-3.5 h-3.5 text-white/80" />
                 </div>
                 <span className="text-sm font-bold text-white font-mono uppercase tracking-tight">
-                  SKILLSWAP // TECH
+                  EXCHANGESKILL // TECH
                 </span>
               </div>
               <p className="text-[12px] text-white/30 leading-relaxed max-w-xs">
@@ -744,7 +744,7 @@ export default function LandingPage() {
 
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-white/[0.03]">
             <span className="text-[10px] font-mono text-white/20">
-              © 2026 SKILLSWAP. SYSTEM INDEX ONLINE.
+              © 2026 EXCHANGESKILL. SYSTEM INDEX ONLINE.
             </span>
             <div className="flex items-center gap-6">
               <span className="text-[10px] font-mono text-white/20 hover:text-white/40 cursor-pointer">PRIVACY_PROT</span>

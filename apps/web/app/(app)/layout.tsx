@@ -45,11 +45,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-center items-center gap-4">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
-          <div className="absolute inset-2 rounded-full border-t-2 border-secondary animate-spin [animation-delay:0.2s]" />
-        </div>
-        <p className="text-white/60 text-sm animate-pulse">Syncing SkillSwap secure session...</p>
+        <div className="w-10 h-10 border-t-2 border-white border-solid rounded-full animate-spin" />
+        <p className="text-white/60 text-xs font-mono tracking-wider animate-pulse">SYNCING EXCHANGESKILL SECURE SESSION...</p>
       </div>
     );
   }
@@ -58,10 +55,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (clerkActive && !user) {
     return (
       <div className="min-h-screen bg-background flex flex-col justify-center items-center gap-4">
-        <p className="text-white/80">Please sign in to access SkillSwap.</p>
+        <p className="text-white/70 text-xs font-mono uppercase tracking-wider">Please sign in to access ExchangeSkill.</p>
         <Link
           href="/sign-in"
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-95 transition-all font-semibold"
+          className="px-5 py-2.5 bg-white text-black rounded text-xs font-mono uppercase hover:bg-white/90 transition-all"
         >
           Sign In
         </Link>
@@ -72,15 +69,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar Navigation */}
-      <aside className="w-64 glass-panel border-r border-white/5 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30 shadow-[5px_0_25px_rgba(0,0,0,0.4)]">
+      <aside className="w-64 bg-background subtle-border border-r flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30 crosshairs">
         <div className="flex flex-col flex-1">
           {/* Logo */}
           <div className="h-16 flex items-center gap-2.5 px-6 border-b border-white/5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary via-secondary to-accent flex items-center justify-center shadow-lg shadow-accent/20 animate-pulse">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded border border-white/20 flex items-center justify-center bg-white/[0.02]">
+              <Sparkles className="w-4 h-4 text-white/80" />
             </div>
-            <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
-              Skill<span className="text-gradient-cyan">Swap</span>
+            <span className="font-bold text-sm tracking-widest font-mono text-white">
+              EXCHANGESKILL // PROT
             </span>
           </div>
 
@@ -92,19 +89,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded text-xs font-mono uppercase tracking-wider transition-all duration-300 group relative ${
                     isActive
-                      ? "bg-gradient-to-r from-primary/10 via-secondary/5 to-accent/5 border border-white/10 text-white shadow-[0_0_15px_rgba(0,242,254,0.08)]"
-                      : "text-white/60 hover:text-white hover:bg-white/[0.03] hover:translate-x-1"
+                      ? "bg-white/[0.04] border border-white/10 text-white"
+                      : "text-white/50 hover:text-white hover:bg-white/[0.02]"
                   }`}
                 >
-                  {/* Left glow line for active state */}
+                  {/* Left solid line for active state */}
                   {isActive && (
-                    <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-gradient-to-b from-primary via-secondary to-accent shadow-[0_0_10px_rgba(0,242,254,0.6)]" />
+                    <div className="absolute left-0 top-3 bottom-3 w-[2px] bg-white/80" />
                   )}
                   <item.icon
-                    className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                      isActive ? "text-accent animate-pulse" : "text-white/60 group-hover:text-white"
+                    className={`w-4 h-4 transition-transform group-hover:scale-105 ${
+                      isActive ? "text-white" : "text-white/50 group-hover:text-white"
                     }`}
                   />
                   <span>{item.name}</span>
@@ -124,7 +121,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-white truncate">{user?.name}</p>
-              <p className="text-[10px] text-white/40 truncate">{user?.college || "SkillSwapper"}</p>
+              <p className="text-[10px] text-white/40 truncate">{user?.college || "ExchangeSkiller"}</p>
             </div>
             {clerkActive && (
               <div className="scale-90">
@@ -138,7 +135,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
-        <header className="h-16 glass-panel border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-20">
+        <header className="h-16 bg-background subtle-border border-b flex items-center justify-between px-8 sticky top-0 z-20 crosshairs">
           <div className="flex items-center gap-2">
             <span className="text-xs text-white/40 font-medium capitalize">
               {pathname === "/dashboard" ? "Overview" : pathname.replace("/", "").replace("-", " ")}
@@ -148,18 +145,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-4">
             {/* Developer Sandbox User Switcher */}
             {!clerkActive && (
-              <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <div className="flex items-center gap-1.5 text-xs text-amber-400 font-semibold">
+              <div className="flex items-center gap-2.5 px-3 py-1.5 rounded border border-white/10 bg-white/[0.02]">
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-white/50 uppercase tracking-widest">
                   <Users className="w-3.5 h-3.5" />
                   <span>Sandbox Mode:</span>
                 </div>
                 <select
                   value={mockUserId}
                   onChange={(e) => changeMockUser(e.target.value)}
-                  className="bg-background/80 text-xs border border-white/10 rounded-lg px-2 py-1 text-white font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="bg-background text-[10px] font-mono border border-white/10 rounded px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-white"
                 >
                   {mockUsersList.map((m) => (
-                    <option key={m.id} value={m.id}>
+                    <option key={m.id} value={m.id} className="bg-black">
                       {m.name}
                     </option>
                   ))}
@@ -175,7 +172,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Dynamic page content */}
-        <main className="flex-1 p-8 overflow-y-auto">{children}</main>
+        <main className="flex-1 p-8 overflow-y-auto crosshairs crosshairs-inner relative">
+          <div className="max-w-7xl mx-auto">{children}</div>
+        </main>
+        
+        {/* Tracking Overlay (Aesthetic) */}
+        <div className="fixed bottom-4 right-8 flex gap-8 text-[9px] font-mono text-white/40 uppercase tracking-widest pointer-events-none z-50">
+          <div className="flex flex-col gap-1">
+            <span className="flex justify-between w-24"><span>Cursor X:</span><span className="text-white/80">SYS</span></span>
+            <span className="flex justify-between w-24"><span>Cursor Y:</span><span className="text-white/80">ACT</span></span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="flex justify-between w-24"><span>Scroll:</span><span className="text-white/80">0.00</span></span>
+            <span className="flex justify-between w-24"><span>Time:</span><span className="text-white/80">ONL</span></span>
+          </div>
+        </div>
       </div>
     </div>
   );

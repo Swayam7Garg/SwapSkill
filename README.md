@@ -1,6 +1,6 @@
-# SkillSwap — Peer-to-Peer Skill Exchange for Students
+# ExchangeSkill — Peer-to-Peer Skill Exchange for Students
 
-SkillSwap is a secure, real-time, peer-to-peer skill exchange platform designed for college students to swap their knowledge (coding, design, music, language, sports, academics, etc.) with zero cost. 
+ExchangeSkill is a secure, real-time, peer-to-peer skill exchange platform designed for college students to swap their knowledge (coding, design, music, language, sports, academics, etc.) with zero cost. 
 
 Match compatibility is computed using a mutual overlap matchmaking algorithm: matching your learning goals with peer teaching skills.
 
@@ -84,7 +84,7 @@ npm run dev
 
 ## 🔐 Authentication Modes
 
-SkillSwap supports two authentication pipelines:
+ExchangeSkill supports two authentication pipelines:
 
 ### Mode A: Developer Sandbox (Default)
 If you leave Clerk credentials blank or as `pk_test_placeholder` in `.env` configurations:

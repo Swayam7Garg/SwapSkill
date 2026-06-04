@@ -61,24 +61,24 @@ export default function SessionCard({
 
   return (
     <div className="card-3d-wrapper h-full">
-      <div className="card-3d glass-card rounded-2xl p-5 border border-white/5 flex flex-col justify-between gap-4 h-full preserve-3d group">
+      <div className="card-3d glass-card rounded p-5 border border-white/5 flex flex-col justify-between gap-4 h-full preserve-3d group">
         {/* Upper section */}
         <div className="flex items-start justify-between gap-3 pop-depth-sm">
           <div className="flex gap-3">
             <img
               src={partner.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg"}
               alt={partner.name}
-              className="w-11 h-11 rounded-full border border-white/10 object-cover bg-white/5 transition-transform group-hover:scale-105"
+              className="w-10 h-10 rounded border border-white/10 object-cover bg-white/5 transition-transform group-hover:scale-105"
             />
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase ${
-                  role === "teacher" ? "text-primary bg-primary/10" : "text-accent bg-accent/10"
+                <span className={`text-[8px] font-mono tracking-wider px-1.5 py-0.5 rounded border uppercase ${
+                  role === "teacher" ? "text-white bg-white/10 border-white/20" : "text-white/70 bg-white/5 border-white/10"
                 }`}>
                   {role === "teacher" ? "Teaching" : "Learning"}
                 </span>
                 <span className="text-xs text-white/50">with</span>
-                <Link href={`/profile/${partner.id}`} className="text-xs font-bold text-white hover:text-accent hover:underline">
+                <Link href={`/profile/${partner.id}`} className="text-xs font-bold text-white hover:text-white hover:underline">
                   {partner.name}
                 </Link>
               </div>
@@ -91,10 +91,10 @@ export default function SessionCard({
 
           {/* Status indicator */}
           <div>
-            <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-semibold border ${
-              status === "SCHEDULED" ? "text-accent bg-accent/10 border-accent/20 shadow-[0_0_10px_rgba(0,242,254,0.1)] animate-pulse" :
-              status === "COMPLETED" ? "text-green-400 bg-green-500/10 border-green-500/20" :
-              "text-white/30 bg-white/5 border-white/5"
+            <span className={`inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded font-mono uppercase tracking-wider border ${
+              status === "SCHEDULED" ? "text-white bg-white/15 border-white/30" :
+              status === "COMPLETED" ? "text-white/60 bg-white/[0.04] border-white/10" :
+              "text-white/30 bg-white/[0.02] border-white/5 line-through"
             }`}>
               <span>{status.toLowerCase()}</span>
             </span>
@@ -102,21 +102,21 @@ export default function SessionCard({
         </div>
 
         {/* Date & Time / Duration details */}
-        <div className="pop-depth-md flex flex-col gap-2 bg-white/[0.01] border border-white/5 rounded-xl p-3.5 text-xs text-white/70">
+        <div className="pop-depth-md flex flex-col gap-2 bg-white/[0.01] border border-white/5 rounded p-3.5 text-xs text-white/70">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
+            <Calendar className="w-4 h-4 text-white/50" />
             <span>{formatDate(date)} ({durationMin} min)</span>
           </div>
 
           {mode === "ONLINE" ? (
             <div className="flex items-center gap-2">
-              <Video className="w-4 h-4 text-accent" />
+              <Video className="w-4 h-4 text-white/50" />
               {meetLink ? (
                 <a
                   href={meetLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-accent hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(0,242,254,0.3)] underline font-medium truncate"
+                  className="text-white hover:text-white hover:underline font-medium truncate"
                 >
                   Join Google Meet
                 </a>
@@ -126,7 +126,7 @@ export default function SessionCard({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-amber-400" />
+              <MapPin className="w-4 h-4 text-white/50" />
               <span className="truncate">{location || "Offline Location (To be discussed)"}</span>
             </div>
           )}
@@ -140,7 +140,7 @@ export default function SessionCard({
                 <button
                   onClick={() => handleAction(onComplete)}
                   disabled={loading}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-semibold text-white bg-green-600 hover:bg-green-500 transition-colors disabled:opacity-50 hover:shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded text-xs font-mono uppercase tracking-wider text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50"
                 >
                   <CheckCircle className="w-3.5 h-3.5" />
                   <span>Complete</span>
@@ -150,7 +150,7 @@ export default function SessionCard({
                 <button
                   onClick={() => handleAction(onCancel)}
                   disabled={loading}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-semibold text-white/80 bg-white/5 hover:bg-rose-950/20 hover:text-rose-400 hover:border-rose-900/30 border border-white/5 transition-all disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded text-xs font-mono uppercase tracking-wider text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 transition-all disabled:opacity-50"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   <span>Cancel</span>
@@ -162,7 +162,7 @@ export default function SessionCard({
           {status === "COMPLETED" && !hasRating && onOpenRatingModal && (
             <button
               onClick={() => onOpenRatingModal(id)}
-              className="w-full flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-primary to-secondary hover:opacity-95 hover:shadow-[0_0_15px_rgba(255,0,127,0.4)] transition-all"
+              className="w-full flex items-center justify-center gap-1 py-1.5 rounded text-xs font-mono uppercase tracking-wider text-black bg-white hover:bg-white/90 transition-all"
             >
               <Award className="w-3.5 h-3.5 animate-bounce" />
               <span>Write a Review</span>
@@ -170,14 +170,14 @@ export default function SessionCard({
           )}
 
           {status === "COMPLETED" && hasRating && (
-            <div className="w-full text-center text-[10px] font-semibold text-white/30 py-1.5 flex items-center justify-center gap-1">
-              <CheckCircle className="w-3 h-3 text-green-400" />
+            <div className="w-full text-center text-[9px] font-mono uppercase tracking-wider text-white/30 py-1.5 flex items-center justify-center gap-1">
+              <CheckCircle className="w-3 h-3 text-white/40" />
               <span>Reviewed & Rated</span>
             </div>
           )}
 
           {status === "CANCELLED" && (
-            <span className="w-full text-center text-[10px] text-white/30 italic py-1">
+            <span className="w-full text-center text-[9px] font-mono uppercase tracking-wider text-white/30 italic py-1">
               This session was cancelled
             </span>
           )}

@@ -47,7 +47,7 @@ export const calculateSemanticMatches = async (
 
   try {
     const prompt = `
-You are an expert matchmaking assistant for a student skill barter platform called SkillSwap.
+You are an expert matchmaking assistant for a student skill barter platform called ExchangeSkill.
 Your goal is to evaluate the compatibility between a "Viewer" student and a list of "Target" candidate students.
 
 Viewer Profile:

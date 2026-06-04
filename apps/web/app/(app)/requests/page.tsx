@@ -69,7 +69,7 @@ export default function RequestsPage() {
       {/* Title */}
       <div>
         <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-          <Sparkles className="w-7 h-7 text-primary" />
+          <Sparkles className="w-7 h-7 text-white/70" />
           <span>Connection Requests</span>
         </h1>
         <p className="text-xs text-white/50 mt-1 font-medium">
@@ -81,27 +81,27 @@ export default function RequestsPage() {
       <div className="flex border-b border-white/5 pb-0.5 max-w-md gap-4">
         <button
           onClick={() => setActiveTab("inbox")}
-          className={`flex items-center gap-2 pb-3.5 text-sm font-semibold relative transition-all ${
+          className={`flex items-center gap-2 pb-3.5 text-xs font-mono uppercase tracking-wider relative transition-all ${
             activeTab === "inbox" ? "text-white" : "text-white/40 hover:text-white/70"
           }`}
         >
           <Inbox className="w-4 h-4" />
           <span>Incoming Inbox</span>
           {activeTab === "inbox" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/80 rounded" />
           )}
         </button>
 
         <button
           onClick={() => setActiveTab("sent")}
-          className={`flex items-center gap-2 pb-3.5 text-sm font-semibold relative transition-all ${
+          className={`flex items-center gap-2 pb-3.5 text-xs font-mono uppercase tracking-wider relative transition-all ${
             activeTab === "sent" ? "text-white" : "text-white/40 hover:text-white/70"
           }`}
         >
           <Send className="w-4 h-4" />
           <span>Sent Invitations</span>
           {activeTab === "sent" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/80 rounded" />
           )}
         </button>
       </div>
@@ -109,21 +109,21 @@ export default function RequestsPage() {
       {/* Requests Listings */}
       {loading ? (
         <div className="flex flex-col justify-center items-center py-20 gap-4">
-          <div className="w-10 h-10 border-t-2 border-primary border-solid rounded-full animate-spin" />
+          <div className="w-10 h-10 border-t-2 border-white border-solid rounded-full animate-spin" />
           <span className="text-xs text-white/50">Fetching request cards...</span>
         </div>
       ) : error ? (
-        <div className="p-6 bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-2xl max-w-xl mx-auto text-center">
+        <div className="p-6 bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded max-w-xl mx-auto text-center">
           <h4 className="font-bold text-sm mb-1">Error Loading Requests</h4>
           <p className="text-xs">{error}</p>
-          <button onClick={fetchRequests} className="mt-3 text-xs bg-rose-500 text-white px-4 py-2 rounded-xl font-bold">
+          <button onClick={fetchRequests} className="mt-3 text-xs bg-white text-black px-4 py-2 rounded font-bold uppercase font-mono tracking-wider">
             Retry Connection
           </button>
         </div>
       ) : activeTab === "inbox" ? (
         inboxRequests.length === 0 ? (
-          <div className="text-center py-20 glass-panel border border-white/5 border-dashed rounded-2xl max-w-xl mx-auto space-y-2">
-            <p className="text-sm font-bold text-white/60">No pending incoming requests</p>
+          <div className="text-center py-20 glass-panel border border-white/5 border-dashed rounded max-w-xl mx-auto space-y-2">
+            <p className="text-sm font-bold text-white/60 font-mono uppercase">No pending incoming requests</p>
             <p className="text-xs text-white/40">When other students request to connect, they'll appear here.</p>
           </div>
         ) : (
@@ -150,8 +150,8 @@ export default function RequestsPage() {
           </div>
         )
       ) : sentRequests.length === 0 ? (
-        <div className="text-center py-20 glass-panel border border-white/5 border-dashed rounded-2xl max-w-xl mx-auto space-y-2">
-          <p className="text-sm font-bold text-white/60">No sent requests</p>
+        <div className="text-center py-20 glass-panel border border-white/5 border-dashed rounded max-w-xl mx-auto space-y-2">
+          <p className="text-sm font-bold text-white/60 font-mono uppercase">No sent requests</p>
           <p className="text-xs text-white/40">Go to "Browse peers" and hit Connect to send out invites!</p>
         </div>
       ) : (

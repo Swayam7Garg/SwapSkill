@@ -17,13 +17,15 @@ export const isClerkActive = (): boolean => {
 // Get active mock user ID for local development
 export const getActiveMockUser = (): string => {
   if (typeof window === "undefined") return "user_demo_1";
-  return localStorage.getItem("skillswap_mock_user") || "user_demo_1";
+  return localStorage.getItem("exchangeskill_mock_user") || "user_demo_1";
 };
 
-// Set active mock user ID for local development
+/**
+ * Set the mock user ID in local storage for testing purposes.
+ */
 export const setActiveMockUser = (userId: string) => {
   if (typeof window !== "undefined") {
-    localStorage.setItem("skillswap_mock_user", userId);
+    localStorage.setItem("exchangeskill_mock_user", userId);
     window.location.reload(); // Reload to refresh contexts
   }
 };

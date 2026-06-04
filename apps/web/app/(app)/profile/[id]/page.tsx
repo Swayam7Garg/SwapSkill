@@ -96,7 +96,7 @@ export default function PublicProfilePage() {
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center py-20 gap-4">
-        <div className="w-10 h-10 border-t-2 border-primary border-solid rounded-full animate-spin" />
+        <div className="w-10 h-10 border-t-2 border-white border-solid rounded-full animate-spin" />
         <span className="text-xs text-white/50">Fetching student portfolio...</span>
       </div>
     );
@@ -104,10 +104,10 @@ export default function PublicProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="p-6 bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-2xl max-w-xl mx-auto text-center">
+      <div className="p-6 bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded max-w-xl mx-auto text-center">
         <h4 className="font-bold text-sm mb-1">Failed to load peer profile</h4>
         <p className="text-xs">{error || "User not found"}</p>
-        <button onClick={fetchProfileAndConnection} className="mt-3 text-xs bg-rose-500 text-white px-4 py-2 rounded-xl font-bold">
+        <button onClick={fetchProfileAndConnection} className="mt-3 text-xs bg-white text-black px-4 py-2 rounded font-bold uppercase font-mono tracking-wider">
           Retry Connection
         </button>
       </div>
@@ -120,29 +120,28 @@ export default function PublicProfilePage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
       {/* Upper Panel: Avatar, info, quick action banner */}
-      <div className="glass-panel border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
+      <div className="glass-panel border border-white/5 rounded p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
         {/* Glow */}
-        <div className="absolute top-0 right-0 bg-gradient-to-l from-accent/15 via-transparent to-transparent w-48 h-48 rounded-bl-full pointer-events-none animate-pulse" />
-        <div className="absolute bottom-0 left-0 bg-gradient-to-tr from-primary/5 via-transparent to-transparent w-36 h-36 rounded-tr-full pointer-events-none" />
+        <div className="absolute top-0 right-0 bg-gradient-to-l from-white/5 via-white/[0.01] to-transparent w-48 h-48 rounded-bl-full pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
           <img
             src={profile.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg"}
             alt={profile.name}
-            className="w-24 h-24 rounded-full border-4 border-white/10 object-cover bg-white/5 shadow-xl transition-transform hover:scale-105 duration-300"
+            className="w-20 h-20 rounded border border-white/20 object-cover bg-white/5 shadow-xl transition-transform hover:scale-105 duration-300"
           />
           <div className="space-y-2">
             <h1 className="text-3xl font-extrabold tracking-tight text-white">{profile.name}</h1>
-            <p className="text-sm text-white/50 flex items-center gap-1.5 justify-center md:justify-start">
-              <GraduationCap className="w-4.5 h-4.5 text-accent shrink-0" />
+            <p className="text-xs text-white/50 flex items-center gap-1.5 justify-center md:justify-start font-mono uppercase tracking-wider">
+              <GraduationCap className="w-4.5 h-4.5 text-white/70 shrink-0" />
               <span>{profile.college || "College Affiliated Student"}</span>
             </p>
-            <div className="flex gap-1 items-center justify-center md:justify-start text-sm">
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <div className="flex gap-1 items-center justify-center md:justify-start text-xs font-mono uppercase tracking-wider">
+              <Star className="w-4 h-4 text-white/60 fill-white/60" />
               <span className="font-bold text-white">
                 {profile.avgRating > 0 ? profile.avgRating.toFixed(1) : "New"}
               </span>
-              <span className="text-xs text-white/40">
+              <span className="text-[10px] text-white/40">
                 {profile.ratingsReceived?.length > 0
                   ? `(${profile.ratingsReceived.length} swap reviews)`
                   : "(no reviews yet)"}
@@ -156,18 +155,18 @@ export default function PublicProfilePage() {
           {connectionStatus === "ACCEPTED" ? (
             <button
               onClick={() => setIsScheduleOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-primary via-secondary to-accent text-xs font-bold text-white rounded-xl flex items-center gap-2 hover:shadow-[0_0_20px_rgba(0,242,254,0.3)] transition-all hover:scale-[1.02] self-stretch justify-center duration-300"
+              className="px-6 py-3 bg-white text-black text-xs font-mono uppercase tracking-wider rounded flex items-center gap-2 hover:bg-white/95 transition-all self-stretch justify-center duration-300"
             >
-              <Calendar className="w-4.5 h-4.5 text-white" />
+              <Calendar className="w-4.5 h-4.5" />
               <span>Schedule Swap Session</span>
             </button>
           ) : connectionStatus === "PENDING" ? (
-            <div className="px-5 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-400 flex items-center gap-2 justify-center shadow-inner">
-              <Clock className="w-4.5 h-4.5 animate-pulse" />
+            <div className="px-5 py-3 rounded border border-white/10 bg-white/5 text-xs font-mono uppercase tracking-wider text-white/70 flex items-center gap-2 justify-center shadow-inner">
+              <Clock className="w-4.5 h-4.5 animate-pulse text-white/40" />
               <span>Connection Request Pending</span>
             </div>
           ) : (
-            <div className="text-xs text-white/40 font-medium italic text-center md:text-right">
+            <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 italic text-center md:text-right">
               Send a request below to unlock scheduling!
             </div>
           )}
@@ -181,55 +180,55 @@ export default function PublicProfilePage() {
         <div className="lg:col-span-2 space-y-8">
           
           {/* Bio info */}
-          <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
-            <h2 className="text-base font-bold text-white border-b border-white/5 pb-3">About {profile.name}</h2>
+          <div className="glass-card border border-white/5 rounded p-6 space-y-4 hover:border-white/15">
+            <h2 className="text-xs font-mono uppercase tracking-wider text-white border-b border-white/5 pb-3">About {profile.name}</h2>
             <p className="text-xs text-white/70 leading-relaxed font-medium">
               {profile.bio || `${profile.name} hasn't written a biography yet.`}
             </p>
           </div>
 
           {/* Teach Skills */}
-          <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
-            <h3 className="text-sm font-bold text-white border-b border-white/5 pb-3">Skills {profile.name} Can Teach</h3>
+          <div className="glass-card border border-white/5 rounded p-6 space-y-4 hover:border-white/15">
+            <h3 className="text-xs font-mono uppercase tracking-wider text-white border-b border-white/5 pb-3">Skills {profile.name} Can Teach</h3>
             <div className="flex flex-wrap gap-2.5">
               {profile.teachSkills && profile.teachSkills.length > 0 ? (
                 profile.teachSkills.map((skill: any) => (
                   <SkillChip key={skill.id} name={skill.name} category={skill.category} />
                 ))
               ) : (
-                <span className="text-xs text-white/40 italic">No teaching skills listed</span>
+                <span className="text-xs text-white/40 italic font-mono">No teaching skills listed</span>
               )}
             </div>
           </div>
 
           {/* Learn Skills */}
-          <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
-            <h3 className="text-sm font-bold text-white border-b border-white/5 pb-3">Skills {profile.name} Wants to Learn</h3>
+          <div className="glass-card border border-white/5 rounded p-6 space-y-4 hover:border-white/15">
+            <h3 className="text-xs font-mono uppercase tracking-wider text-white border-b border-white/5 pb-3">Skills {profile.name} Wants to Learn</h3>
             <div className="flex flex-wrap gap-2.5">
               {profile.learnSkills && profile.learnSkills.length > 0 ? (
                 profile.learnSkills.map((skill: any) => (
                   <SkillChip key={skill.id} name={skill.name} category={skill.category} />
                 ))
               ) : (
-                <span className="text-xs text-white/40 italic">No learning goals listed</span>
+                <span className="text-xs text-white/40 italic font-mono">No learning goals listed</span>
               )}
             </div>
           </div>
 
           {/* Connect form (If connectionStatus === NONE) */}
           {connectionStatus === "NONE" && (
-            <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-                <MessageSquare className="w-4.5 h-4.5 text-accent animate-pulse" />
+            <div className="glass-card border border-white/5 rounded p-6 space-y-4 hover:border-white/15">
+              <h3 className="text-xs font-mono uppercase tracking-wider text-white flex items-center gap-2 border-b border-white/5 pb-3">
+                <MessageSquare className="w-4.5 h-4.5 text-white/70 animate-pulse" />
                 <span>Connect & Swap Skills</span>
               </h3>
 
               {requestSuccess ? (
-                <div className="p-4 bg-green-500/10 border border-green-500/25 text-green-400 rounded-xl flex items-center gap-3 shadow-inner">
-                  <CheckCircle2 className="w-5 h-5 text-green-450" />
+                <div className="p-4 bg-white/5 border border-white/10 text-white rounded flex items-center gap-3 shadow-inner">
+                  <CheckCircle2 className="w-5 h-5 text-white/80" />
                   <div>
-                    <p className="text-xs font-bold">Request Sent Successfully!</p>
-                    <p className="text-[10px] text-green-450 mt-0.5">
+                    <p className="text-xs font-bold font-mono uppercase tracking-wider">Request Sent Successfully!</p>
+                    <p className="text-[10px] text-white/60 mt-0.5">
                       We notified {profile.name}. Once they accept, scheduling will unlock immediately.
                     </p>
                   </div>
@@ -244,14 +243,14 @@ export default function PublicProfilePage() {
                       placeholder="Ask them to swap! Tell them what skills you want to learn from them and what you can teach in return..."
                       rows={3}
                       maxLength={250}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent leading-relaxed resize-none transition-all"
+                      className="w-full bg-background border border-white/10 rounded px-4 py-3 text-xs text-white focus:outline-none focus:border-white focus:ring-1 focus:ring-white leading-relaxed resize-none transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={submittingRequest}
-                    className="px-5 py-2.5 bg-gradient-to-r from-primary via-secondary to-accent text-xs font-bold text-white rounded-xl flex items-center gap-2 hover:shadow-[0_0_15px_rgba(0,242,254,0.25)] transition-all disabled:opacity-50 hover:scale-[1.01]"
+                    className="px-5 py-2.5 bg-white text-black text-xs font-mono uppercase tracking-wider rounded flex items-center gap-2 hover:bg-white/90 transition-all disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{submittingRequest ? "Sending Request..." : "Send Connection Request"}</span>

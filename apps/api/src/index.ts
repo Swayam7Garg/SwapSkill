@@ -111,5 +111,5 @@ cron.schedule("* * * * *", async () => {
 
 // Start HTTP server
 server.listen(port, () => {
-  console.log(`[server]: SkillSwap backend running on http://localhost:${port}`);
+  console.log(`[server]: ExchangeSkill backend running on http://localhost:${port}`);
 });

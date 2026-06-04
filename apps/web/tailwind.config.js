@@ -49,7 +49,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "Inter", "sans-serif"],
+        sans: ["var(--font-sans)", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       boxShadow: {
         glow: "0 0 15px rgba(233, 30, 140, 0.15)",

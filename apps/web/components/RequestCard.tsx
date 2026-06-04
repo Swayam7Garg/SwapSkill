@@ -61,14 +61,14 @@ export default function RequestCard({
   });
 
   return (
-    <div className="glass-card rounded-2xl p-5 border border-white/5 flex flex-col justify-between gap-4 transition-all">
+    <div className="glass-card rounded p-5 border border-white/5 flex flex-col justify-between gap-4 transition-all">
       <div className="flex items-start justify-between gap-3">
         {/* User Profile */}
         <div className="flex items-center gap-3">
           <img
             src={partner.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg"}
             alt={partner.name}
-            className="w-12 h-12 rounded-full border border-white/10 object-cover bg-white/5"
+            className="w-12 h-12 rounded border border-white/10 object-cover bg-white/5"
           />
           <div>
             <div className="flex items-center gap-1.5">
@@ -77,21 +77,21 @@ export default function RequestCard({
                 <ArrowUpRight className="w-3.5 h-3.5 text-white/40 hover:text-white cursor-pointer transition-colors" />
               </Link>
             </div>
-            <p className="text-xs text-white/45">{partner.college || "College Student"}</p>
+            <p className="text-[10px] font-mono uppercase tracking-wider text-white/45">{partner.college || "College Student"}</p>
           </div>
         </div>
 
         {/* Date / Status */}
-        <div className="text-right">
-          <p className="text-[10px] text-white/30">{formattedDate}</p>
+        <div className="text-right font-mono">
+          <p className="text-[9px] text-white/30">{formattedDate}</p>
           {type === "sent" && (
-            <span className={`inline-flex items-center gap-1 mt-1 text-[10px] px-2 py-0.5 rounded-md font-semibold border ${
-              status === "PENDING" ? "text-amber-400 bg-amber-500/10 border-amber-500/20" :
-              status === "ACCEPTED" ? "text-green-400 bg-green-500/10 border-green-500/20" :
-              status === "REJECTED" ? "text-rose-400 bg-rose-500/10 border-rose-500/20" :
+            <span className={`inline-flex items-center gap-1 mt-1 text-[9px] px-2 py-0.5 rounded font-mono uppercase tracking-wider border ${
+              status === "PENDING" ? "text-white/60 bg-white/5 border-white/10" :
+              status === "ACCEPTED" ? "text-white bg-white/15 border-white/30" :
+              status === "REJECTED" ? "text-white/40 bg-white/[0.02] border-white/5 line-through" :
               "text-white/30 bg-white/5 border-white/5"
             }`}>
-              {status === "PENDING" && <Clock className="w-3 h-3 animate-spin" />}
+              {status === "PENDING" && <Clock className="w-3 h-3 animate-spin text-white/40" />}
               <span>{status.toLowerCase()}</span>
             </span>
           )}
@@ -100,7 +100,7 @@ export default function RequestCard({
 
       {/* Message Box */}
       {message && (
-        <div className="px-3.5 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.03] text-xs text-white/70 italic leading-relaxed">
+        <div className="px-3.5 py-2.5 rounded bg-white/[0.01] border border-white/[0.03] text-[11px] text-white/60 italic leading-relaxed">
           "{message}"
         </div>
       )}
@@ -108,12 +108,12 @@ export default function RequestCard({
       {/* Skills Preview */}
       {partner.teachSkills && partner.teachSkills.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] uppercase font-bold text-white/30 mr-1">Teaches:</span>
+          <span className="text-[9px] font-mono uppercase tracking-wider text-white/30 mr-1">Teaches:</span>
           {partner.teachSkills.slice(0, 2).map((s) => (
             <SkillChip key={s.id} name={s.name} category={s.category} size="sm" />
           ))}
           {partner.teachSkills.length > 2 && (
-            <span className="text-[9px] text-white/40 font-medium">+{partner.teachSkills.length - 2} more</span>
+            <span className="text-[9px] font-mono text-white/45">+{partner.teachSkills.length - 2} more</span>
           )}
         </div>
       )}
@@ -125,7 +125,7 @@ export default function RequestCard({
             <button
               onClick={() => handleAction(onAccept)}
               disabled={loading}
-              className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-semibold text-white bg-green-600 hover:bg-green-500 transition-colors disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1 py-2 rounded text-xs font-mono uppercase tracking-wider text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
               <span>Accept Swap</span>
@@ -133,7 +133,7 @@ export default function RequestCard({
             <button
               onClick={() => handleAction(onReject)}
               disabled={loading}
-              className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-semibold text-white/80 bg-white/5 hover:bg-rose-950/20 hover:text-rose-400 hover:border-rose-900/30 border border-white/5 transition-all disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1 py-2 rounded text-xs font-mono uppercase tracking-wider text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 transition-all disabled:opacity-50"
             >
               <X className="w-4 h-4" />
               <span>Decline</span>
@@ -145,7 +145,7 @@ export default function RequestCard({
           <button
             onClick={() => handleAction(onCancel)}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-semibold text-white/70 bg-white/5 hover:bg-rose-950/20 hover:text-rose-400 hover:border-rose-950 border border-white/5 transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-1 py-2 rounded text-xs font-mono uppercase tracking-wider text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 transition-all disabled:opacity-50"
           >
             <Trash className="w-3.5 h-3.5" />
             <span>Cancel Request</span>

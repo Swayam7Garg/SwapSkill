@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/skillswap";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/exchangeskill";
 
 async function main() {
   console.log("Connecting to MongoDB for seeding...");

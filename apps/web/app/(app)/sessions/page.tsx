@@ -72,7 +72,7 @@ export default function SessionsPage() {
       {/* Title */}
       <div>
         <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-          <Sparkles className="w-7 h-7 text-primary" />
+          <Sparkles className="w-7 h-7 text-white/70" />
           <span>My Swap Sessions</span>
         </h1>
         <p className="text-xs text-white/50 mt-1 font-medium">
@@ -84,30 +84,30 @@ export default function SessionsPage() {
       <div className="flex border-b border-white/5 pb-0.5 max-w-md gap-4">
         <button
           onClick={() => setActiveFilter("upcoming")}
-          className={`flex items-center gap-2 pb-3.5 text-sm font-semibold relative transition-all ${
+          className={`flex items-center gap-2 pb-3.5 text-xs font-mono uppercase tracking-wider relative transition-all ${
             activeFilter === "upcoming" ? "text-white" : "text-white/40 hover:text-white/70"
           }`}
         >
           <CalendarRange className="w-4 h-4" />
           <span>Upcoming Swaps</span>
-          <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-1.5 py-0.5 rounded-md">
+          <span className="text-[9px] font-mono uppercase tracking-wider bg-white/10 text-white px-1.5 py-0.5 rounded">
             {upcomingSessions.length}
           </span>
           {activeFilter === "upcoming" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/80 rounded" />
           )}
         </button>
 
         <button
           onClick={() => setActiveFilter("past")}
-          className={`flex items-center gap-2 pb-3.5 text-sm font-semibold relative transition-all ${
+          className={`flex items-center gap-2 pb-3.5 text-xs font-mono uppercase tracking-wider relative transition-all ${
             activeFilter === "past" ? "text-white" : "text-white/40 hover:text-white/70"
           }`}
         >
           <History className="w-4 h-4" />
           <span>Completed History</span>
           {activeFilter === "past" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/80 rounded" />
           )}
         </button>
       </div>
@@ -115,20 +115,20 @@ export default function SessionsPage() {
       {/* Session listings */}
       {loading ? (
         <div className="flex flex-col justify-center items-center py-20 gap-4">
-          <div className="w-10 h-10 border-t-2 border-primary border-solid rounded-full animate-spin" />
+          <div className="w-10 h-10 border-t-2 border-white border-solid rounded-full animate-spin" />
           <span className="text-xs text-white/50">Fetching schedules...</span>
         </div>
       ) : error ? (
-        <div className="p-6 bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-2xl max-w-xl mx-auto text-center">
+        <div className="p-6 bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded max-w-xl mx-auto text-center">
           <h4 className="font-bold text-sm mb-1">Error Loading Sessions</h4>
           <p className="text-xs">{error}</p>
-          <button onClick={fetchSessions} className="mt-3 text-xs bg-rose-500 text-white px-4 py-2 rounded-xl font-bold">
+          <button onClick={fetchSessions} className="mt-3 text-xs bg-white text-black px-4 py-2 rounded font-bold uppercase font-mono tracking-wider">
             Retry Connection
           </button>
         </div>
       ) : displayedSessions.length === 0 ? (
-        <div className="text-center py-20 glass-panel border border-white/5 border-dashed rounded-2xl max-w-xl mx-auto space-y-2">
-          <p className="text-sm font-bold text-white/60">
+        <div className="text-center py-20 glass-panel border border-white/5 border-dashed rounded max-w-xl mx-auto space-y-2">
+          <p className="text-sm font-bold text-white/60 font-mono uppercase">
             {activeFilter === "upcoming" ? "No scheduled upcoming sessions" : "No session history recorded"}
           </p>
           <p className="text-xs text-white/40">
