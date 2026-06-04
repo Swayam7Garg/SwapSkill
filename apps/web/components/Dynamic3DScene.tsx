@@ -42,7 +42,7 @@ export default function Dynamic3DScene({
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0x3b82f6, 1.5, 50);
+    const pointLight = new THREE.PointLight(0xffffff, 1.5, 50);
     pointLight.position.set(5, 5, 5);
     scene.add(pointLight);
 
@@ -133,7 +133,7 @@ export default function Dynamic3DScene({
 
     // Dynamic inner lines
     const heroInnerGeom = new THREE.IcosahedronGeometry(1.6, 1);
-    const heroInnerMat = createLineMaterial(0x3b82f6, 0.2);
+    const heroInnerMat = createLineMaterial(0x71717a, 0.2);
     const heroInnerLines = new THREE.LineSegments(
       new THREE.WireframeGeometry(heroInnerGeom),
       heroInnerMat
@@ -148,7 +148,7 @@ export default function Dynamic3DScene({
     // Core nodes
     const nodeGeom = new THREE.SphereGeometry(0.3, 16, 16);
     const nodeMat1 = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true });
-    const nodeMat2 = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true });
+    const nodeMat2 = new THREE.MeshBasicMaterial({ color: 0x71717a, transparent: true });
 
     const nodeA = new THREE.Mesh(nodeGeom, nodeMat1);
     const nodeB = new THREE.Mesh(nodeGeom, nodeMat2);
@@ -169,7 +169,7 @@ export default function Dynamic3DScene({
     const connLineGeom = new THREE.BufferGeometry();
     const connLinePos = new Float32Array(6); // 2 points * 3 coords
     connLineGeom.setAttribute("position", new THREE.BufferAttribute(connLinePos, 3));
-    const connLineMat = createLineMaterial(0x3b82f6, 0.6);
+    const connLineMat = createLineMaterial(0xffffff, 0.6);
     const connectionLine = new THREE.Line(connLineGeom, connLineMat);
     aiGroup.add(connectionLine);
 
@@ -186,7 +186,7 @@ export default function Dynamic3DScene({
       dustPos[d * 3 + 2] = r * Math.cos(phi);
     }
     dustGeom.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
-    const dustPoints = new THREE.Points(dustGeom, createPointsMaterial(0x3b82f6, 0.06));
+    const dustPoints = new THREE.Points(dustGeom, createPointsMaterial(0x71717a, 0.06));
     aiGroup.add(dustPoints);
 
     // ==========================================
@@ -204,7 +204,7 @@ export default function Dynamic3DScene({
     dirGroup.add(dirWire);
 
     // Grid points
-    const dirPointsMat = createPointsMaterial(0x3b82f6, 0.08);
+    const dirPointsMat = createPointsMaterial(0x71717a, 0.08);
     const dirPoints = new THREE.Points(cylinderGeom, dirPointsMat);
     dirGroup.add(dirPoints);
 
@@ -232,7 +232,7 @@ export default function Dynamic3DScene({
     // Inner clock face
     const innerRingGeom = new THREE.RingGeometry(1.2, 1.25, 32);
     const innerRingMat = new THREE.MeshBasicMaterial({
-      color: 0x3b82f6,
+      color: 0x71717a,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.15,
@@ -273,7 +273,7 @@ export default function Dynamic3DScene({
       ticksPos[t * 6 + 5] = 0;
     }
     ticksGeom.setAttribute("position", new THREE.BufferAttribute(ticksPos, 3));
-    const ticks = new THREE.LineSegments(ticksGeom, createLineMaterial(0x3b82f6, 0.3));
+    const ticks = new THREE.LineSegments(ticksGeom, createLineMaterial(0x71717a, 0.3));
     schedGroup.add(ticks);
 
     // ==========================================
@@ -299,7 +299,7 @@ export default function Dynamic3DScene({
       const trGeom = new THREE.BufferGeometry();
       trGeom.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
       
-      const trMat = createLineMaterial(tr === tierCount - 1 ? 0xffffff : 0x3b82f6, 0.2 + tr * 0.1);
+      const trMat = createLineMaterial(tr === tierCount - 1 ? 0xffffff : 0x71717a, 0.2 + tr * 0.1);
       const trMesh = new THREE.LineLoop(trGeom, trMat);
       repGroup.add(trMesh);
       tierMeshes.push(trMesh);
@@ -350,7 +350,7 @@ export default function Dynamic3DScene({
     const rippleGeom = new THREE.SphereGeometry(1, 16, 12);
     for (let w = 0; w < waveCount; w++) {
       const ripMat = new THREE.MeshBasicMaterial({
-        color: 0x3b82f6,
+        color: 0x71717a,
         wireframe: true,
         transparent: true,
         opacity: 0.1,
@@ -394,7 +394,7 @@ export default function Dynamic3DScene({
     guideGroup.add(boxLines);
 
     // Glowing coordinate joints
-    const boxPoints = new THREE.Points(boxGeom, createPointsMaterial(0x3b82f6, 0.09));
+    const boxPoints = new THREE.Points(boxGeom, createPointsMaterial(0x71717a, 0.09));
     guideGroup.add(boxPoints);
 
     // Inner orbiting core document node
@@ -409,7 +409,7 @@ export default function Dynamic3DScene({
     // Floating data sheets (grids)
     const sheetGeom = new THREE.PlaneGeometry(0.6, 0.6, 2, 2);
     const sheetWire = new THREE.WireframeGeometry(sheetGeom);
-    const sheetMat = createLineMaterial(0x3b82f6, 0.2);
+    const sheetMat = createLineMaterial(0x71717a, 0.2);
     
     const sheet1 = new THREE.LineSegments(sheetWire, sheetMat);
     const sheet2 = new THREE.LineSegments(sheetWire, sheetMat);

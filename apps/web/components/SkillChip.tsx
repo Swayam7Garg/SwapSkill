@@ -32,35 +32,35 @@ const categoryStyles: Record<
 > = {
   TECHNOLOGY: {
     icon: Laptop,
-    classes: "text-blue-400 bg-blue-500/10 border-blue-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
   DESIGN: {
     icon: Palette,
-    classes: "text-pink-400 bg-pink-500/10 border-pink-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
   MUSIC: {
     icon: Music,
-    classes: "text-violet-400 bg-violet-500/10 border-violet-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
   LANGUAGE: {
     icon: Languages,
-    classes: "text-green-400 bg-green-500/10 border-green-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
   SPORTS: {
     icon: Activity,
-    classes: "text-amber-400 bg-amber-500/10 border-amber-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
   ACADEMICS: {
     icon: BookOpen,
-    classes: "text-indigo-400 bg-indigo-500/10 border-indigo-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
   COMMUNICATION: {
     icon: MessageSquare,
-    classes: "text-rose-400 bg-rose-500/10 border-rose-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
   OTHER: {
     icon: Sparkles,
-    classes: "text-cyan-400 bg-cyan-500/10 border-cyan-500/25",
+    classes: "text-white/90 bg-white/[0.04] border-white/10",
   },
 };
 

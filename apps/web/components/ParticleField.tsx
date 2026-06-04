@@ -38,9 +38,9 @@ export default function ParticleField() {
 
     const palette = [
       new THREE.Color("#ffffff"), // bright white
-      new THREE.Color("#9ca3af"), // steel gray
-      new THREE.Color("#3b82f6"), // blue
-      new THREE.Color("#1e293b"), // dim slate
+      new THREE.Color("#e4e4e7"), // metallic silver-gray
+      new THREE.Color("#71717a"), // muted gray
+      new THREE.Color("#27272a"), // dark carbon gray
     ];
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -152,7 +152,7 @@ export default function ParticleField() {
 
     const ring2Geometry = new THREE.TorusGeometry(3.2, 0.004, 12, 80);
     const ring2Material = new THREE.MeshBasicMaterial({
-      color: 0x3b82f6,
+      color: 0x71717a,
       transparent: true,
       opacity: 0.04,
     });
