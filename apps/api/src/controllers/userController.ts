@@ -224,7 +224,7 @@ export const browseUsers = async (req: Request, res: Response) => {
 
     // 1. Fetch current viewer user for compatibility matching
     const viewer = clerkId
-      ? await User.findOne({ clerkId })
+      ? await User.findOne({ clerkId }).populate("teachSkills learnSkills")
       : null;
 
     // 2. Build filters for DB query
@@ -260,28 +260,40 @@ export const browseUsers = async (req: Request, res: Response) => {
     const allUserIds = allUsers.map(u => u.id);
     const ratingsReceived = await Rating.find({ ratedId: { $in: allUserIds } });
 
+    // Prepare data for semantic matchmaking
+    const targetData = allUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      college: u.college,
+      bio: u.bio,
+      teachSkills: u.teachSkills.map((s: any) => s.name),
+      learnSkills: u.learnSkills.map((s: any) => s.name),
+    }));
+
+    const viewerData = viewer ? {
+      id: viewer.id,
+      name: viewer.name,
+      college: viewer.college,
+      bio: viewer.bio,
+      teachSkills: viewer.teachSkills.map((s: any) => s.name),
+      learnSkills: viewer.learnSkills.map((s: any) => s.name),
+    } : { id: "guest", name: "Guest User", teachSkills: [], learnSkills: [] };
+
+    // Calculate semantic matches with Gemini
+    const { calculateSemanticMatches } = await import("../utils/geminiMatcher.ts");
+    const semanticMatches = await calculateSemanticMatches(viewerData, targetData);
+
     const usersWithScores = allUsers.map((target) => {
-      // Find rating average
+      const match = semanticMatches.find(m => m.id === target.id) || { compatibilityScore: 0, explanation: "" };
       const targetRatings = ratingsReceived.filter(r => r.ratedId === target.id);
       const totalScore = targetRatings.reduce((sum, r) => sum + r.score, 0);
       const avgRating = targetRatings.length > 0 ? totalScore / targetRatings.length : 0;
 
-      // Compatibility score
-      let compScore = 0;
-      if (viewer) {
-        const overlap = viewer.learnSkills.filter((s) =>
-          target.teachSkills.some((ts) => ts.toString() === s.toString())
-        ).length;
-        const reverseOverlap = viewer.teachSkills.filter((s) =>
-          target.learnSkills.some((ls) => ls.toString() === s.toString())
-        ).length;
-        compScore = overlap * 2 + reverseOverlap;
-      }
-
       return {
         ...target.toJSON(),
         avgRating,
-        compatibilityScore: compScore,
+        compatibilityScore: match.compatibilityScore,
+        matchExplanation: match.explanation,
       };
     });
 

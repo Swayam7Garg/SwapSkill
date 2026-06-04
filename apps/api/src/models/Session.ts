@@ -22,7 +22,8 @@ const sessionSchema = new Schema({
   mode: { type: String, enum: Object.values(SessionMode), default: SessionMode.ONLINE },
   meetLink: { type: String, default: null },
   location: { type: String, default: null },
-  status: { type: String, enum: Object.values(SessionStatus), default: SessionStatus.SCHEDULED }
+  status: { type: String, enum: Object.values(SessionStatus), default: SessionStatus.SCHEDULED },
+  studyGuide: { type: String, default: null }
 }, {
   timestamps: true,
   toJSON: {

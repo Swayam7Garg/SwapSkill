@@ -240,3 +240,115 @@ export const cancelSession = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const generateStudyGuide = async (req: Request, res: Response) => {
+  try {
+    const clerkId = req.user?.clerkId;
+    const { id } = req.params;
+
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized." });
+    }
+
+    const user = await User.findOne({ clerkId });
+    if (!user) {
+      return res.status(404).json({ error: "User profile not found." });
+    }
+
+    const session = await Session.findById(id)
+      .populate("teacherId")
+      .populate("learnerId")
+      .populate("skillId");
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found." });
+    }
+
+    // Verify permission
+    const teacherIdStr = (session.teacherId as any).id || (session.teacherId as any)._id;
+    const learnerIdStr = (session.learnerId as any).id || (session.learnerId as any)._id;
+
+    if (teacherIdStr !== user.id && learnerIdStr !== user.id) {
+      return res.status(403).json({ error: "Forbidden. You are not a participant in this session." });
+    }
+
+    // Return saved guide if already generated
+    if (session.studyGuide) {
+      return res.status(200).json({ studyGuide: session.studyGuide });
+    }
+
+    const teacher: any = session.teacherId;
+    const learner: any = session.learnerId;
+    const skill: any = session.skillId;
+
+    let studyGuideMarkdown = "";
+
+    const { ai, isGeminiConfigured } = await import("../config/gemini.ts");
+
+    if (!isGeminiConfigured) {
+      // Mock Fallback Study Guide
+      studyGuideMarkdown = `
+# 📚 AI Lesson Plan: ${skill.name}
+*Prepared for ${learner.name} by instructor ${teacher.name} (Sandbox Mock Guide)*
+
+### 🕒 Session Timeline (60 Minutes)
+* **00:00 - 00:10 | Introduction & Goal Alignment**
+  * Discuss ${learner.name}'s learning goals in ${skill.name}.
+  * Review any prerequisite knowledge or setups needed.
+* **00:10 - 00:35 | Core Concept Training**
+  * ${teacher.name} explains the foundational blocks of ${skill.name}.
+  * Code-along or direct hands-on walkthrough.
+* **00:35 - 00:50 | Guided Practical Exercise**
+  * Complete a short task or build a simple mini-project together.
+  * Live feedback and debugging from ${teacher.name}.
+* **00:50 - 01:00 | Wrap-up & Q&A**
+  * Review key takeaways.
+  * Plan next self-study steps and future swap sessions.
+
+---
+💡 *Tip: Since this is in sandbox development mode, configure a valid GEMINI_API_KEY to generate highly personalized AI guides!*
+      `;
+    } else {
+      try {
+        const prompt = `
+You are an expert AI teaching assistant for a peer-to-peer student skill-barter platform called SkillSwap.
+Your goal is to generate a highly personalized, structured 1-hour session study guide / lesson plan for a swap session.
+
+Session Details:
+- Skill being taught: ${skill.name} (Category: ${skill.category})
+- Instructor/Teacher: ${teacher.name}
+  * Bio: ${teacher.bio || "N/A"}
+- Student/Learner: ${learner.name}
+  * Bio: ${learner.bio || "N/A"}
+
+Please generate a professional Markdown lesson plan. Address both students by name. Include:
+1. A brief, encouraging introduction about the exchange.
+2. A detailed 60-minute timeline breakdown (Introduction, Core Concept, Practical Exercise, Q&A).
+3. 2-3 specific, actionable practice exercises or mini-project ideas that they can build during this session.
+4. Tips for the teacher (${teacher.name}) on how to explain concepts simply, and tips for the learner (${learner.name}) on how to practice.
+
+Format the output as clean Markdown. Do NOT wrap it in any HTML tags.
+        `;
+
+        const response = await ai!.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt
+        });
+
+        studyGuideMarkdown = response.text || "Failed to generate study guide. Please try again.";
+      } catch (geminiError: any) {
+        console.error("Gemini Guide Generation Error:", geminiError);
+        return res.status(500).json({ error: "Failed to generate AI study guide due to API error." });
+      }
+    }
+
+    // Save study guide in Mongoose database
+    session.studyGuide = studyGuideMarkdown;
+    await session.save();
+
+    return res.status(200).json({ studyGuide: studyGuideMarkdown });
+  } catch (error) {
+    console.error("Error generating study guide:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};

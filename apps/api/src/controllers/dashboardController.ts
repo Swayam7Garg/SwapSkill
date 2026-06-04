@@ -97,29 +97,41 @@ export const getDashboardData = async (req: Request, res: Response) => {
     const otherUsers = await User.find({ _id: { $ne: user.id } }).populate("teachSkills learnSkills");
     const otherRatings = await Rating.find({ ratedId: { $in: otherUsers.map(u => u.id) } });
 
-    const matchScores = otherUsers.map(target => {
-      // Compatibility overlap logic
-      const overlap = user.learnSkills.filter(s =>
-        target.teachSkills.some(ts => ts.toString() === s.toString())
-      ).length;
-      const reverseOverlap = user.teachSkills.filter(s =>
-        target.learnSkills.some(ls => ls.toString() === s.toString())
-      ).length;
-      const score = (overlap * 2) + reverseOverlap;
+    const targetData = otherUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      college: u.college,
+      bio: u.bio,
+      teachSkills: u.teachSkills.map((s: any) => s.name),
+      learnSkills: u.learnSkills.map((s: any) => s.name),
+    }));
 
-      // Avg rating
+    const viewerData = {
+      id: user.id,
+      name: user.name,
+      college: user.college,
+      bio: user.bio,
+      teachSkills: user.teachSkills.map((s: any) => s.name),
+      learnSkills: user.learnSkills.map((s: any) => s.name),
+    };
+
+    const { calculateSemanticMatches } = await import("../utils/geminiMatcher.ts");
+    const semanticMatches = await calculateSemanticMatches(viewerData, targetData);
+
+    const matchScores = otherUsers.map(target => {
+      const match = semanticMatches.find(m => m.id === target.id) || { compatibilityScore: 0, explanation: "" };
       const targetRatings = otherRatings.filter(r => r.ratedId === target.id);
       const targetTotal = targetRatings.reduce((sum, r) => sum + r.score, 0);
       const targetAvg = targetRatings.length > 0 ? targetTotal / targetRatings.length : 0;
 
       return {
         ...target.toJSON(),
-        compatibilityScore: score,
+        compatibilityScore: match.compatibilityScore,
+        matchExplanation: match.explanation,
         avgRating: targetAvg,
       };
     });
 
-    // Sort by compatibility score, then average rating, and take top 3
     matchScores.sort((a, b) => {
       if (b.compatibilityScore !== a.compatibilityScore) {
         return b.compatibilityScore - a.compatibilityScore;
@@ -136,7 +148,10 @@ export const getDashboardData = async (req: Request, res: Response) => {
       learnSkills: m.learnSkills,
       avgRating: m.avgRating,
       compatibilityScore: m.compatibilityScore,
+      matchExplanation: m.matchExplanation,
     }));
+
+
 
     // 6. Widget: Recent Activity Feed (last 5 actions combined)
     const sentReqs = await SwapRequest.find({ senderId: user.id })
