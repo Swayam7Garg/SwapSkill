@@ -1,7 +1,18 @@
 import { Schema, model } from "mongoose";
 import crypto from "crypto";
 
-const ratingSchema = new Schema({
+export interface IRating {
+  _id: string;
+  sessionId: string;
+  raterId: string;
+  ratedId: string;
+  score: number;
+  comment?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const ratingSchema = new Schema<IRating>({
   _id: { type: String, default: () => crypto.randomUUID() },
   sessionId: { type: String, ref: "Session", required: true, unique: true },
   raterId: { type: String, ref: "User", required: true },
@@ -12,7 +23,7 @@ const ratingSchema = new Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
@@ -21,4 +32,4 @@ const ratingSchema = new Schema({
   }
 });
 
-export const Rating = model("Rating", ratingSchema);
+export const Rating = model<IRating>("Rating", ratingSchema);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middlewares/auth.ts";
+import { requireAuth } from "../middlewares/auth.js";
 import {
   createSession,
   getMySessions,
@@ -7,7 +7,7 @@ import {
   completeSession,
   cancelSession,
   generateStudyGuide,
-} from "../controllers/sessionController.ts";
+} from "../controllers/sessionController.js";
 
 const router = Router();
 

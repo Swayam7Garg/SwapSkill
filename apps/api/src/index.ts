@@ -7,18 +7,18 @@ import cron from "node-cron";
 // Load environment variables
 dotenv.config();
 
-import { initSocket } from "./utils/socket.ts";
-import { connectDB } from "./config/db.ts";
-import { emitToUser } from "./utils/socket.ts";
-import { Session, SessionStatus } from "./models/Session.ts";
+import { initSocket } from "./utils/socket.js";
+import { connectDB } from "./config/db.js";
+import { emitToUser } from "./utils/socket.js";
+import { Session, SessionStatus } from "./models/Session.js";
 
 // Import Routes
-import userRoutes from "./routes/userRoutes.ts";
-import requestRoutes from "./routes/requestRoutes.ts";
-import sessionRoutes from "./routes/sessionRoutes.ts";
-import ratingRoutes from "./routes/ratingRoutes.ts";
-import skillRoutes from "./routes/skillRoutes.ts";
-import dashboardRoutes from "./routes/dashboardRoutes.ts";
+import userRoutes from "./routes/userRoutes.js";
+import requestRoutes from "./routes/requestRoutes.js";
+import sessionRoutes from "./routes/sessionRoutes.js";
+import ratingRoutes from "./routes/ratingRoutes.js";
+import skillRoutes from "./routes/skillRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 const app = express();
 const server = http.createServer(app);

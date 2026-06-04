@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Skill, SkillCategory } from "../models/Skill.ts";
+import { Skill, SkillCategory } from "../models/Skill.js";
 import { z } from "zod";
 
 const createSkillSchema = z.object({

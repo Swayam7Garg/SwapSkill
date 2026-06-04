@@ -8,7 +8,17 @@ export enum RequestStatus {
   CANCELLED = "CANCELLED"
 }
 
-const swapRequestSchema = new Schema({
+export interface ISwapRequest {
+  _id: string;
+  senderId: string;
+  receiverId: string;
+  message?: string | null;
+  status: RequestStatus;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const swapRequestSchema = new Schema<ISwapRequest>({
   _id: { type: String, default: () => crypto.randomUUID() },
   senderId: { type: String, ref: "User", required: true },
   receiverId: { type: String, ref: "User", required: true },
@@ -18,7 +28,7 @@ const swapRequestSchema = new Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
@@ -27,4 +37,4 @@ const swapRequestSchema = new Schema({
   }
 });
 
-export const SwapRequest = model("SwapRequest", swapRequestSchema);
+export const SwapRequest = model<ISwapRequest>("SwapRequest", swapRequestSchema);

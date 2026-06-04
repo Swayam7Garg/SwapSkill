@@ -12,7 +12,23 @@ export enum SessionStatus {
   CANCELLED = "CANCELLED"
 }
 
-const sessionSchema = new Schema({
+export interface ISession {
+  _id: string;
+  teacherId: string;
+  learnerId: string;
+  skillId: string;
+  date: Date;
+  durationMin: number;
+  mode: SessionMode;
+  meetLink?: string | null;
+  location?: string | null;
+  status: SessionStatus;
+  studyGuide?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const sessionSchema = new Schema<ISession>({
   _id: { type: String, default: () => crypto.randomUUID() },
   teacherId: { type: String, ref: "User", required: true },
   learnerId: { type: String, ref: "User", required: true },
@@ -28,7 +44,7 @@ const sessionSchema = new Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
@@ -37,4 +53,4 @@ const sessionSchema = new Schema({
   }
 });
 
-export const Session = model("Session", sessionSchema);
+export const Session = model<ISession>("Session", sessionSchema);

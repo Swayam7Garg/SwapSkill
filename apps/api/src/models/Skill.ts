@@ -12,7 +12,15 @@ export enum SkillCategory {
   OTHER = "OTHER"
 }
 
-const skillSchema = new Schema({
+export interface ISkill {
+  _id: string;
+  name: string;
+  category: SkillCategory;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const skillSchema = new Schema<ISkill>({
   _id: { type: String, default: () => crypto.randomUUID() },
   name: { type: String, required: true },
   category: { type: String, enum: Object.values(SkillCategory), required: true }
@@ -20,7 +28,7 @@ const skillSchema = new Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
@@ -29,4 +37,4 @@ const skillSchema = new Schema({
   }
 });
 
-export const Skill = model("Skill", skillSchema);
+export const Skill = model<ISkill>("Skill", skillSchema);

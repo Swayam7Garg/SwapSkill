@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { User } from "../models/User.ts";
-import { Session } from "../models/Session.ts";
-import { Rating } from "../models/Rating.ts";
+import { User } from "../models/User.js";
+import { Session } from "../models/Session.js";
+import { Rating } from "../models/Rating.js";
 import { z } from "zod";
 
 const createRatingSchema = z.object({

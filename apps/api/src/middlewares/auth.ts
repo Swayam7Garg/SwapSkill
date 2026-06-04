@@ -53,7 +53,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
     try {
       // Verify the JWT token using Clerk Backend SDK
-      const verifiedToken = await clerk!.verifyToken(token);
+      const verifiedToken = await (clerk as any).verifyToken(token);
       
       // Clerk's subject 'sub' is the Clerk User ID
       req.user = {

@@ -1,7 +1,21 @@
 import { Schema, model } from "mongoose";
 import crypto from "crypto";
 
-const userSchema = new Schema({
+export interface IUser {
+  _id: string;
+  clerkId: string;
+  name: string;
+  email: string;
+  bio?: string | null;
+  avatarUrl?: string | null;
+  college?: string | null;
+  teachSkills: any[]; // references to Skill model
+  learnSkills: any[]; // references to Skill model
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const userSchema = new Schema<IUser>({
   _id: { type: String, default: () => crypto.randomUUID() },
   clerkId: { type: String, required: true, unique: true },
   name: { type: String, required: true },
@@ -15,7 +29,7 @@ const userSchema = new Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
@@ -24,4 +38,4 @@ const userSchema = new Schema({
   }
 });
 
-export const User = model("User", userSchema);
+export const User = model<IUser>("User", userSchema);

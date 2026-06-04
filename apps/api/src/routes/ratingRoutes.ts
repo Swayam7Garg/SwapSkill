@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth } from "../middlewares/auth.ts";
-import { createRating, getUserRatings } from "../controllers/ratingController.ts";
+import { requireAuth } from "../middlewares/auth.js";
+import { createRating, getUserRatings } from "../controllers/ratingController.js";
 
 const router = Router();
 

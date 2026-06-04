@@ -48,7 +48,7 @@ export default function ParticleField() {
       positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
 
-      const color = palette[Math.floor(Math.random() * palette.length)];
+      const color = palette[Math.floor(Math.random() * palette.length)]!;
       colors[i * 3] = color.r;
       colors[i * 3 + 1] = color.g;
       colors[i * 3 + 2] = color.b;
@@ -194,8 +194,10 @@ export default function ParticleField() {
       mouse.x += (targetMouse.x - mouse.x) * 0.05;
       mouse.y += (targetMouse.y - mouse.y) * 0.05;
 
-      particleMaterial.uniforms.uTime.value = elapsed;
-      particleMaterial.uniforms.uMouse.value.set(mouse.x, mouse.y);
+      if (particleMaterial.uniforms.uTime && particleMaterial.uniforms.uMouse) {
+        particleMaterial.uniforms.uTime.value = elapsed;
+        particleMaterial.uniforms.uMouse.value.set(mouse.x, mouse.y);
+      }
 
       // Rotate ring slowly
       ring.rotation.z = elapsed * 0.08;
@@ -207,26 +209,43 @@ export default function ParticleField() {
       camera.lookAt(0, 0, 0);
 
       // Update connection lines
-      const posArr = particleGeometry.attributes.position.array as Float32Array;
-      let lineIdx = 0;
-      for (let i = 0; i < Math.min(PARTICLE_COUNT, 100) && lineIdx < LINE_COUNT; i++) {
-        for (let j = i + 1; j < Math.min(PARTICLE_COUNT, 100) && lineIdx < LINE_COUNT; j++) {
-          const dx = posArr[i * 3] - posArr[j * 3];
-          const dy = posArr[i * 3 + 1] - posArr[j * 3 + 1];
-          const dz = posArr[i * 3 + 2] - posArr[j * 3 + 2];
-          const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-          if (dist < 1.5) {
-            linePositions[lineIdx * 6] = posArr[i * 3];
-            linePositions[lineIdx * 6 + 1] = posArr[i * 3 + 1];
-            linePositions[lineIdx * 6 + 2] = posArr[i * 3 + 2];
-            linePositions[lineIdx * 6 + 3] = posArr[j * 3];
-            linePositions[lineIdx * 6 + 4] = posArr[j * 3 + 1];
-            linePositions[lineIdx * 6 + 5] = posArr[j * 3 + 2];
-            lineIdx++;
+      const posAttr = particleGeometry.getAttribute("position") as THREE.BufferAttribute | undefined;
+      if (posAttr) {
+        const posArr = posAttr.array as Float32Array;
+        let lineIdx = 0;
+        for (let i = 0; i < Math.min(PARTICLE_COUNT, 100) && lineIdx < LINE_COUNT; i++) {
+          for (let j = i + 1; j < Math.min(PARTICLE_COUNT, 100) && lineIdx < LINE_COUNT; j++) {
+            const idxI3 = i * 3;
+            const idxJ3 = j * 3;
+            const xi = posArr[idxI3];
+            const yi = posArr[idxI3 + 1];
+            const zi = posArr[idxI3 + 2];
+            const xj = posArr[idxJ3];
+            const yj = posArr[idxJ3 + 1];
+            const zj = posArr[idxJ3 + 2];
+
+            if (xi !== undefined && yi !== undefined && zi !== undefined && xj !== undefined && yj !== undefined && zj !== undefined) {
+              const dx = xi - xj;
+              const dy = yi - yj;
+              const dz = zi - zj;
+              const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+              if (dist < 1.5) {
+                linePositions[lineIdx * 6] = xi;
+                linePositions[lineIdx * 6 + 1] = yi;
+                linePositions[lineIdx * 6 + 2] = zi;
+                linePositions[lineIdx * 6 + 3] = xj;
+                linePositions[lineIdx * 6 + 4] = yj;
+                linePositions[lineIdx * 6 + 5] = zj;
+                lineIdx++;
+              }
+            }
           }
         }
+        const linePosAttr = lineGeometry.getAttribute("position");
+        if (linePosAttr) {
+          linePosAttr.needsUpdate = true;
+        }
       }
-      lineGeometry.attributes.position.needsUpdate = true;
 
       renderer.render(scene, camera);
     };

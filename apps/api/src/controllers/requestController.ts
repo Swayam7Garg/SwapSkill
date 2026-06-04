@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { User } from "../models/User.ts";
-import { SwapRequest, RequestStatus } from "../models/SwapRequest.ts";
-import { emitToUser } from "../utils/socket.ts";
+import { User } from "../models/User.js";
+import { SwapRequest, RequestStatus } from "../models/SwapRequest.js";
+import { emitToUser } from "../utils/socket.js";
 import { z } from "zod";
 
 const createRequestSchema = z.object({
@@ -42,8 +42,8 @@ export const sendRequest = async (req: Request, res: Response) => {
     // Check if request already exists (PENDING or ACCEPTED)
     const existingRequest = await SwapRequest.findOne({
       $or: [
-        { senderId: sender.id, receiverId, status: { $in: ["PENDING", "ACCEPTED"] } },
-        { senderId: receiverId, receiverId: sender.id, status: { $in: ["PENDING", "ACCEPTED"] } }
+        { senderId: sender.id, receiverId, status: { $in: [RequestStatus.PENDING, RequestStatus.ACCEPTED] } },
+        { senderId: receiverId, receiverId: sender.id, status: { $in: [RequestStatus.PENDING, RequestStatus.ACCEPTED] } }
       ]
     });
 
@@ -98,7 +98,7 @@ export const getInbox = async (req: Request, res: Response) => {
 
     const inbox = await SwapRequest.find({
       receiverId: user.id,
-      status: "PENDING",
+      status: RequestStatus.PENDING,
     })
       .populate({
         path: "senderId",
@@ -110,7 +110,7 @@ export const getInbox = async (req: Request, res: Response) => {
 
     // Format response matching Prisma (nesting under sender/receiver rather than senderId/receiverId)
     const formattedInbox = inbox.map(req => {
-      const rObj = req.toJSON();
+      const rObj = (req as any).toJSON();
       const sender = rObj.senderId;
       delete rObj.senderId;
       return {
@@ -151,7 +151,7 @@ export const getSent = async (req: Request, res: Response) => {
 
     // Format response matching Prisma (receiver mapping)
     const formattedSent = sent.map(req => {
-      const rObj = req.toJSON();
+      const rObj = (req as any).toJSON();
       const receiver = rObj.receiverId;
       delete rObj.receiverId;
       return {
@@ -189,11 +189,11 @@ export const acceptRequest = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Request not found" });
     }
 
-    if (swapRequest.receiverId.id !== user.id) {
+    if ((swapRequest.receiverId as any).id !== user.id) {
       return res.status(403).json({ error: "Forbidden. You cannot accept this request." });
     }
 
-    if (swapRequest.status !== "PENDING") {
+    if (swapRequest.status !== RequestStatus.PENDING) {
       return res.status(400).json({ error: `Request has already been ${swapRequest.status.toLowerCase()}.` });
     }
 
@@ -237,7 +237,7 @@ export const rejectRequest = async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Forbidden. You cannot reject this request." });
     }
 
-    if (swapRequest.status !== "PENDING") {
+    if (swapRequest.status !== RequestStatus.PENDING) {
       return res.status(400).json({ error: `Request has already been ${swapRequest.status.toLowerCase()}.` });
     }
 

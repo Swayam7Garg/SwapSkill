@@ -1,4 +1,4 @@
-import { ai, isGeminiConfigured } from "../config/gemini.ts";
+import { ai, isGeminiConfigured } from "../config/gemini.js";
 
 interface UserProfileData {
   id: string;

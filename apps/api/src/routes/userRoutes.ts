@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middlewares/auth.ts";
+import { requireAuth } from "../middlewares/auth.js";
 import {
   syncUser,
   getMe,
@@ -9,7 +9,7 @@ import {
   deleteMySkill,
   browseUsers,
   getLeaderboard,
-} from "../controllers/userController.ts";
+} from "../controllers/userController.js";
 
 const router = Router();
 

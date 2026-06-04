@@ -94,7 +94,7 @@ if (url && token && url !== "your-upstash-redis-url" && token !== "your-upstash-
     redisClient = new Redis({
       url,
       token,
-    });
+    }) as unknown as CacheStore;
   } catch (error) {
     console.warn("Failed to initialize Upstash Redis, falling back to MemoryCache:", error);
     redisClient = new MemoryCache();

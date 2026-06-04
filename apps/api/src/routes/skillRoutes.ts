@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { requireAuth } from "../middlewares/auth.ts";
-import { listSkills, createSkill } from "../controllers/skillController.ts";
+import { requireAuth } from "../middlewares/auth.js";
+import { listSkills, createSkill } from "../controllers/skillController.js";
 
 const router = Router();
 

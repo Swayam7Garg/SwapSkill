@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../models/User.ts";
-import { Skill } from "../models/Skill.ts";
-import { Rating } from "../models/Rating.ts";
-import { Session } from "../models/Session.ts";
+import { User } from "../models/User.js";
+import { Skill } from "../models/Skill.js";
+import { Rating } from "../models/Rating.js";
+import { Session, SessionStatus } from "../models/Session.js";
 import { z } from "zod";
 
 // Zod schemas for validation
@@ -236,17 +236,17 @@ export const browseUsers = async (req: Request, res: Response) => {
 
     if (teach) {
       const skills = await Skill.find({ name: { $regex: teach as string, $options: "i" } });
-      query.teachSkills = { $in: skills.map(s => s.id) };
+      query.teachSkills = { $in: skills.map(s => s._id) };
     }
 
     if (learn) {
       const skills = await Skill.find({ name: { $regex: learn as string, $options: "i" } });
-      query.learnSkills = { $in: skills.map(s => s.id) };
+      query.learnSkills = { $in: skills.map(s => s._id) };
     }
 
     if (category) {
-      const skills = await Skill.find({ category });
-      const skillIds = skills.map(s => s.id);
+      const skills = await Skill.find({ category: category as any });
+      const skillIds = skills.map(s => s._id);
       query.$or = [
         { teachSkills: { $in: skillIds } },
         { learnSkills: { $in: skillIds } }
@@ -280,7 +280,7 @@ export const browseUsers = async (req: Request, res: Response) => {
     } : { id: "guest", name: "Guest User", teachSkills: [], learnSkills: [] };
 
     // Calculate semantic matches with Gemini
-    const { calculateSemanticMatches } = await import("../utils/geminiMatcher.ts");
+    const { calculateSemanticMatches } = await import("../utils/geminiMatcher.js");
     const semanticMatches = await calculateSemanticMatches(viewerData, targetData);
 
     const usersWithScores = allUsers.map((target) => {
@@ -327,7 +327,7 @@ export const browseUsers = async (req: Request, res: Response) => {
 export const getLeaderboard = async (req: Request, res: Response) => {
   try {
     const users = await User.find().populate("teachSkills learnSkills");
-    const completedSessions = await Session.find({ status: "COMPLETED" });
+    const completedSessions = await Session.find({ status: SessionStatus.COMPLETED });
     const allRatings = await Rating.find();
 
     const leaderboard = users.map(u => {

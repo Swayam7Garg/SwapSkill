@@ -112,7 +112,7 @@ export default function Dynamic3DScene({
     // ==========================================
     // HERO GROUP (Index -1) -> Network Globe / Icosahedron
     // ==========================================
-    const heroGroup = groups[0];
+    const heroGroup = groups[0]!;
     const heroGeom = new THREE.IcosahedronGeometry(2.2, 2);
     
     // Wireframe Mesh
@@ -143,7 +143,7 @@ export default function Dynamic3DScene({
     // ==========================================
     // 0. AI MATCHING (Index 0) -> Two Orbiting, Connecting Nodes
     // ==========================================
-    const aiGroup = groups[1];
+    const aiGroup = groups[1]!;
     
     // Core nodes
     const nodeGeom = new THREE.SphereGeometry(0.3, 16, 16);
@@ -192,7 +192,7 @@ export default function Dynamic3DScene({
     // ==========================================
     // 1. SMART DIRECTORY (Index 1) -> Grid Cylinder / Matrix Cloud
     // ==========================================
-    const dirGroup = groups[2];
+    const dirGroup = groups[2]!;
     const cylinderGeom = new THREE.CylinderGeometry(1.6, 1.6, 3, 12, 6, true);
     
     // Wireframe grid lines
@@ -227,7 +227,7 @@ export default function Dynamic3DScene({
     // ==========================================
     // 2. SCHEDULING (Index 2) -> Intersecting Clockwork Rings
     // ==========================================
-    const schedGroup = groups[3];
+    const schedGroup = groups[3]!;
 
     // Inner clock face
     const innerRingGeom = new THREE.RingGeometry(1.2, 1.25, 32);
@@ -279,7 +279,7 @@ export default function Dynamic3DScene({
     // ==========================================
     // 3. REPUTATION SYSTEM (Index 3) -> Ascending Pyramid Levels
     // ==========================================
-    const repGroup = groups[4];
+    const repGroup = groups[4]!;
     
     // Stacked tiers (squares in 3D)
     const tierCount = 4;
@@ -318,12 +318,12 @@ export default function Dynamic3DScene({
     const repParticleCount = 15;
     const repParticleGeom = new THREE.BufferGeometry();
     const repParticlePos = new Float32Array(repParticleCount * 3);
-    const repParticleSpeeds: number[] = [];
+    const repParticleSpeeds = new Float32Array(repParticleCount);
     for (let rp = 0; rp < repParticleCount; rp++) {
       repParticlePos[rp * 3] = (Math.random() - 0.5) * 1.2;
       repParticlePos[rp * 3 + 1] = (Math.random() - 0.5) * 2.4;
       repParticlePos[rp * 3 + 2] = (Math.random() - 0.5) * 1.2;
-      repParticleSpeeds.push(0.01 + Math.random() * 0.015);
+      repParticleSpeeds[rp] = 0.01 + Math.random() * 0.015;
     }
     repParticleGeom.setAttribute("position", new THREE.BufferAttribute(repParticlePos, 3));
     const repParticles = new THREE.Points(repParticleGeom, createPointsMaterial(0xffffff, 0.08));
@@ -332,7 +332,7 @@ export default function Dynamic3DScene({
     // ==========================================
     // 4. REAL-TIME ALERTS (Index 4) -> Ripple spheres expanding
     // ==========================================
-    const alertGroup = groups[5];
+    const alertGroup = groups[5]!;
 
     // Core pulsing beacon
     const beaconGeom = new THREE.SphereGeometry(0.4, 16, 16);
@@ -382,7 +382,7 @@ export default function Dynamic3DScene({
     // ==========================================
     // 5. AI STUDY GUIDES (Index 5) -> Unfolding Cube / Book Grid
     // ==========================================
-    const guideGroup = groups[6];
+    const guideGroup = groups[6]!;
 
     // Main structural box
     const boxGeom = new THREE.BoxGeometry(1.8, 1.8, 1.8, 2, 2, 2);
@@ -466,7 +466,7 @@ export default function Dynamic3DScene({
       const activeGroupIndex = activeFeatureIndex + 1; // Maps -1 to 0, 0 to 1, etc.
 
       for (let i = 0; i < groups.length; i++) {
-        const group = groups[i];
+        const group = groups[i]!;
         const targetOpacity = i === activeGroupIndex ? 1 : 0;
         
         // Lerp opacity value
@@ -501,7 +501,7 @@ export default function Dynamic3DScene({
       heroInnerLines.rotation.y = -elapsed * 0.1;
 
       // 1. AI matching orbit and line
-      if (groups[1].visible) {
+      if (groups[1]!.visible) {
         const orbitalTime = elapsed * 0.6;
         const xDist = 1.3 + Math.sin(orbitalTime) * 0.3;
         const zDist = Math.cos(orbitalTime) * 1.0;
@@ -515,14 +515,16 @@ export default function Dynamic3DScene({
         nodeB.scale.setScalar(nodePulse);
 
         // Update connection line
-        const posAttr = connectionLine.geometry.attributes.position as THREE.BufferAttribute;
-        posAttr.setXYZ(0, nodeA.position.x, nodeA.position.y, nodeA.position.z);
-        posAttr.setXYZ(1, nodeB.position.x, nodeB.position.y, nodeB.position.z);
-        posAttr.needsUpdate = true;
+        const posAttr = connectionLine.geometry.getAttribute("position") as THREE.BufferAttribute | undefined;
+        if (posAttr) {
+          posAttr.setXYZ(0, nodeA.position.x, nodeA.position.y, nodeA.position.z);
+          posAttr.setXYZ(1, nodeB.position.x, nodeB.position.y, nodeB.position.z);
+          posAttr.needsUpdate = true;
+        }
       }
 
       // 2. Cylinder directory grid
-      if (groups[2].visible) {
+      if (groups[2]!.visible) {
         dirWire.rotation.y = -elapsed * 0.08;
         dirPoints.rotation.y = -elapsed * 0.08;
         ringTop.rotation.z = elapsed * 0.2;
@@ -530,7 +532,7 @@ export default function Dynamic3DScene({
       }
 
       // 3. Scheduling hands and clock orbit
-      if (groups[3].visible) {
+      if (groups[3]!.visible) {
         innerClockFace.rotation.z = -elapsed * 0.05;
         outerTimeLoop.rotation.y = elapsed * 0.15;
         outerTimeLoop.rotation.x = elapsed * 0.08;
@@ -538,27 +540,39 @@ export default function Dynamic3DScene({
       }
 
       // 4. Reputation system rising feedback and square rotates
-      if (groups[4].visible) {
+      if (groups[4]!.visible) {
         tierMeshes.forEach((mesh, idx) => {
           mesh.rotation.y = elapsed * 0.06 * (idx % 2 === 0 ? 1 : -1);
         });
 
         // Rise feedback points
-        const rPos = repParticles.geometry.attributes.position.array as Float32Array;
-        for (let rp = 0; rp < repParticleCount; rp++) {
-          rPos[rp * 3 + 1] += repParticleSpeeds[rp];
-          // Wrap around top/bottom bounds
-          if (rPos[rp * 3 + 1] > 1.2) {
-            rPos[rp * 3 + 1] = -1.2;
-            rPos[rp * 3] = (Math.random() - 0.5) * 1.2;
-            rPos[rp * 3 + 2] = (Math.random() - 0.5) * 1.2;
+        const posAttr = repParticles.geometry.getAttribute("position") as THREE.BufferAttribute | undefined;
+        if (posAttr) {
+          const rPos = posAttr.array as Float32Array;
+          for (let rp = 0; rp < repParticleCount; rp++) {
+            const idxY = rp * 3 + 1;
+            const idxX = rp * 3;
+            const idxZ = rp * 3 + 2;
+            
+            const currentY = rPos[idxY];
+            const speed = repParticleSpeeds[rp];
+            
+            if (currentY !== undefined && speed !== undefined) {
+              let newY = currentY + speed;
+              if (newY > 1.2) {
+                newY = -1.2;
+                rPos[idxX] = (Math.random() - 0.5) * 1.2;
+                rPos[idxZ] = (Math.random() - 0.5) * 1.2;
+              }
+              rPos[idxY] = newY;
+            }
           }
+          posAttr.needsUpdate = true;
         }
-        repParticles.geometry.attributes.position.needsUpdate = true;
       }
 
       // 5. Alerts pulse expansions
-      if (groups[5].visible) {
+      if (groups[5]!.visible) {
         const beaconPulse = 1.0 + Math.sin(elapsed * 4.0) * 0.15;
         beacon.scale.setScalar(beaconPulse);
 
@@ -573,14 +587,14 @@ export default function Dynamic3DScene({
           // Smooth fade out towards bounds
           const mat = rip.material as THREE.MeshBasicMaterial;
           const progress = (scale - 0.4) / 1.8; // 0 to 1
-          mat.opacity = (1.0 - progress) * 0.15 * groups[5].userData.opacity;
+          mat.opacity = (1.0 - progress) * 0.15 * groups[5]!.userData.opacity;
         });
 
         alertLines.rotation.z = elapsed * 0.03;
       }
 
       // 6. Study guides folding boxes
-      if (groups[6].visible) {
+      if (groups[6]!.visible) {
         boxLines.rotation.y = elapsed * 0.1;
         boxLines.rotation.x = elapsed * 0.05;
         boxPoints.rotation.y = elapsed * 0.1;
@@ -616,7 +630,7 @@ export default function Dynamic3DScene({
         if (node.geometry) node.geometry.dispose();
         if (node.material) {
           if (Array.isArray(node.material)) {
-            node.material.forEach((mat) => mat.dispose());
+            node.material.forEach((mat: THREE.Material) => mat.dispose());
           } else {
             node.material.dispose();
           }

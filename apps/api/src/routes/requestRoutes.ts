@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middlewares/auth.ts";
+import { requireAuth } from "../middlewares/auth.js";
 import {
   sendRequest,
   getInbox,
@@ -7,7 +7,7 @@ import {
   acceptRequest,
   rejectRequest,
   cancelRequest,
-} from "../controllers/requestController.ts";
+} from "../controllers/requestController.js";
 
 const router = Router();
 

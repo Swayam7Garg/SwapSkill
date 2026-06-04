@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../models/User.ts";
-import { Session, SessionStatus } from "../models/Session.ts";
-import { Rating } from "../models/Rating.ts";
-import { SwapRequest } from "../models/SwapRequest.ts";
+import { User } from "../models/User.js";
+import { Session, SessionStatus } from "../models/Session.js";
+import { Rating } from "../models/Rating.js";
+import { SwapRequest, RequestStatus } from "../models/SwapRequest.js";
 
 export const getDashboardData = async (req: Request, res: Response) => {
   try {
@@ -22,7 +22,7 @@ export const getDashboardData = async (req: Request, res: Response) => {
     // 2. Widget: Pending Requests (latest 3 PENDING incoming requests)
     const pendingRequests = await SwapRequest.find({
       receiverId: user.id,
-      status: "PENDING",
+      status: RequestStatus.PENDING,
     })
       .populate({ path: "senderId", select: "_id name avatarUrl college" })
       .sort({ createdAt: -1 })
@@ -30,11 +30,11 @@ export const getDashboardData = async (req: Request, res: Response) => {
 
     const pendingRequestsCount = await SwapRequest.countDocuments({
       receiverId: user.id,
-      status: "PENDING",
+      status: RequestStatus.PENDING,
     });
 
     const formattedPendingRequests = pendingRequests.map(r => {
-      const rObj = r.toJSON();
+      const rObj = (r as any).toJSON();
       const sender = rObj.senderId;
       delete rObj.senderId;
       return {
@@ -59,7 +59,7 @@ export const getDashboardData = async (req: Request, res: Response) => {
       .limit(3);
 
     const formattedUpcomingSessions = upcomingSessions.map(s => {
-      const sObj = s.toJSON();
+      const sObj = s.toJSON() as any;
       const teacher = sObj.teacherId;
       const learner = sObj.learnerId;
       const skill = sObj.skillId;
@@ -115,7 +115,7 @@ export const getDashboardData = async (req: Request, res: Response) => {
       learnSkills: user.learnSkills.map((s: any) => s.name),
     };
 
-    const { calculateSemanticMatches } = await import("../utils/geminiMatcher.ts");
+    const { calculateSemanticMatches } = await import("../utils/geminiMatcher.js");
     const semanticMatches = await calculateSemanticMatches(viewerData, targetData);
 
     const matchScores = otherUsers.map(target => {
@@ -139,8 +139,8 @@ export const getDashboardData = async (req: Request, res: Response) => {
       return b.avgRating - a.avgRating;
     });
 
-    const suggestedMatches = matchScores.slice(0, 3).map(m => ({
-      id: m.id,
+    const suggestedMatches = matchScores.slice(0, 3).map((m: any) => ({
+      id: m.id || m._id,
       name: m.name,
       avatarUrl: m.avatarUrl,
       college: m.college,
@@ -222,7 +222,7 @@ export const getDashboardData = async (req: Request, res: Response) => {
           type: "session_completed",
           title: `Completed learning session`,
           description: `Finished session on ${sk.name} with ${partner.name}.`,
-          timestamp: s.date,
+          timestamp: s.date as Date,
         });
       }
     });

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../models/User.ts";
-import { Session, SessionStatus } from "../models/Session.ts";
-import { Rating } from "../models/Rating.ts";
-import { Skill } from "../models/Skill.ts";
+import { User } from "../models/User.js";
+import { Session, SessionStatus, SessionMode } from "../models/Session.js";
+import { Rating } from "../models/Rating.js";
+import { Skill } from "../models/Skill.js";
 import { z } from "zod";
 
 const createSessionSchema = z.object({
@@ -69,7 +69,7 @@ export const createSession = async (req: Request, res: Response) => {
       skillId,
       date: new Date(date),
       durationMin,
-      mode,
+      mode: mode as SessionMode,
       meetLink,
       location,
       status: SessionStatus.SCHEDULED,
@@ -283,7 +283,7 @@ export const generateStudyGuide = async (req: Request, res: Response) => {
 
     let studyGuideMarkdown = "";
 
-    const { ai, isGeminiConfigured } = await import("../config/gemini.ts");
+    const { ai, isGeminiConfigured } = await import("../config/gemini.js");
 
     if (!isGeminiConfigured) {
       // Mock Fallback Study Guide
