@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { prisma } from "../config/prisma.ts";
+import { User } from "../models/User.ts";
+import { Skill } from "../models/Skill.ts";
+import { Rating } from "../models/Rating.ts";
+import { Session } from "../models/Session.ts";
 import { z } from "zod";
 
 // Zod schemas for validation
@@ -35,27 +38,17 @@ export const syncUser = async (req: Request, res: Response) => {
 
     const { name, email, avatarUrl, college } = result.data;
 
-    // Sync to database
-    const user = await prisma.user.upsert({
-      where: { clerkId },
-      update: {
+    // Sync to database via Mongoose
+    const user = await User.findOneAndUpdate(
+      { clerkId },
+      {
         name,
         email,
         avatarUrl,
         college,
       },
-      create: {
-        clerkId,
-        name,
-        email,
-        avatarUrl,
-        college,
-      },
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-      }
-    });
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).populate("teachSkills learnSkills");
 
     return res.status(200).json(user);
   } catch (error) {
@@ -71,25 +64,21 @@ export const getMe = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-        ratingsReceived: true,
-      },
-    });
+    const user = await User.findOne({ clerkId }).populate("teachSkills learnSkills");
 
     if (!user) {
       return res.status(404).json({ error: "User profile not found in database." });
     }
 
+    // Fetch ratings received
+    const ratingsReceived = await Rating.find({ ratedId: user.id });
+
     // Add average rating
-    const totalScore = user.ratingsReceived.reduce((sum, r) => sum + r.score, 0);
-    const avgRating = user.ratingsReceived.length > 0 ? totalScore / user.ratingsReceived.length : 0;
+    const totalScore = ratingsReceived.reduce((sum, r) => sum + r.score, 0);
+    const avgRating = ratingsReceived.length > 0 ? totalScore / ratingsReceived.length : 0;
 
     return res.status(200).json({
-      ...user,
+      ...user.toJSON(),
       avgRating,
     });
   } catch (error) {
@@ -110,14 +99,11 @@ export const updateMe = async (req: Request, res: Response) => {
       return res.status(400).json({ error: result.error.errors });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { clerkId },
-      data: result.data,
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-      },
-    });
+    const updatedUser = await User.findOneAndUpdate(
+      { clerkId },
+      result.data,
+      { new: true }
+    ).populate("teachSkills learnSkills");
 
     return res.status(200).json(updatedUser);
   } catch (error) {
@@ -130,31 +116,32 @@ export const getPublicProfile = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const user = await prisma.user.findUnique({
-      where: { id },
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-        ratingsReceived: {
-          include: {
-            rater: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-      },
-    });
+    const user = await User.findById(id).populate("teachSkills learnSkills");
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const totalScore = user.ratingsReceived.reduce((sum, r) => sum + r.score, 0);
-    const avgRating = user.ratingsReceived.length > 0 ? totalScore / user.ratingsReceived.length : 0;
+    const ratingsReceived = await Rating.find({ ratedId: id })
+      .populate({ path: "raterId", select: "_id name avatarUrl college" })
+      .sort({ createdAt: -1 });
+
+    const totalScore = ratingsReceived.reduce((sum, r) => sum + r.score, 0);
+    const avgRating = ratingsReceived.length > 0 ? totalScore / ratingsReceived.length : 0;
+
+    // Map Mongoose populates to match UI expected fields (rater: { name, ... })
+    const formattedRatings = ratingsReceived.map(r => {
+      const rObj = r.toJSON();
+      const rater: any = rObj.raterId;
+      return {
+        ...rObj,
+        rater: rater ? { id: rater.id, name: rater.name, avatarUrl: rater.avatarUrl, college: rater.college } : null
+      };
+    });
 
     return res.status(200).json({
-      ...user,
+      ...user.toJSON(),
+      ratingsReceived: formattedRatings,
       avgRating,
     });
   } catch (error) {
@@ -177,25 +164,18 @@ export const addMySkill = async (req: Request, res: Response) => {
 
     const { skillId, type } = result.data;
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { clerkId },
-      data: {
-        teachSkills: type === "teach" ? { connect: { id: skillId } } : undefined,
-        learnSkills: type === "learn" ? { connect: { id: skillId } } : undefined,
-      },
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-      },
-    });
+    const updateField = type === "teach" ? "teachSkills" : "learnSkills";
+
+    const updatedUser = await User.findOneAndUpdate(
+      { clerkId },
+      { $addToSet: { [updateField]: skillId } },
+      { new: true }
+    ).populate("teachSkills learnSkills");
 
     return res.status(200).json(updatedUser);
   } catch (error) {
@@ -218,17 +198,13 @@ export const deleteMySkill = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Query parameter 'type' must be 'teach' or 'learn'" });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { clerkId },
-      data: {
-        teachSkills: type === "teach" ? { disconnect: { id: skillId } } : undefined,
-        learnSkills: type === "learn" ? { disconnect: { id: skillId } } : undefined,
-      },
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-      },
-    });
+    const updateField = type === "teach" ? "teachSkills" : "learnSkills";
+
+    const updatedUser = await User.findOneAndUpdate(
+      { clerkId },
+      { $pull: { [updateField]: skillId } },
+      { new: true }
+    ).populate("teachSkills learnSkills");
 
     return res.status(200).json(updatedUser);
   } catch (error) {
@@ -248,86 +224,62 @@ export const browseUsers = async (req: Request, res: Response) => {
 
     // 1. Fetch current viewer user for compatibility matching
     const viewer = clerkId
-      ? await prisma.user.findUnique({
-          where: { clerkId },
-          include: { teachSkills: true, learnSkills: true },
-        })
+      ? await User.findOne({ clerkId })
       : null;
 
     // 2. Build filters for DB query
-    // Filters teachSkill or learnSkill if provided
-    const whereClause: any = {};
+    const query: any = {};
 
     if (clerkId) {
-      // Exclude self from browse results
-      whereClause.clerkId = { not: clerkId };
+      query.clerkId = { $ne: clerkId };
     }
 
     if (teach) {
-      whereClause.teachSkills = {
-        some: {
-          name: { contains: teach as string, mode: "insensitive" },
-        },
-      };
+      const skills = await Skill.find({ name: { $regex: teach as string, $options: "i" } });
+      query.teachSkills = { $in: skills.map(s => s.id) };
     }
 
     if (learn) {
-      whereClause.learnSkills = {
-        some: {
-          name: { contains: learn as string, mode: "insensitive" },
-        },
-      };
+      const skills = await Skill.find({ name: { $regex: learn as string, $options: "i" } });
+      query.learnSkills = { $in: skills.map(s => s.id) };
     }
 
     if (category) {
-      whereClause.OR = [
-        {
-          teachSkills: {
-            some: {
-              category: category,
-            },
-          },
-        },
-        {
-          learnSkills: {
-            some: {
-              category: category,
-            },
-          },
-        },
+      const skills = await Skill.find({ category });
+      const skillIds = skills.map(s => s.id);
+      query.$or = [
+        { teachSkills: { $in: skillIds } },
+        { learnSkills: { $in: skillIds } }
       ];
     }
 
     // 3. Fetch filtered users
-    const allUsers = await prisma.user.findMany({
-      where: whereClause,
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-        ratingsReceived: true,
-      },
-    });
+    const allUsers = await User.find(query).populate("teachSkills learnSkills");
 
-    // 4. Calculate average rating and compatibility score for each user
+    // 4. Load ratings received to calculate avgRating for matches
+    const allUserIds = allUsers.map(u => u.id);
+    const ratingsReceived = await Rating.find({ ratedId: { $in: allUserIds } });
+
     const usersWithScores = allUsers.map((target) => {
-      // Average rating
-      const totalScore = target.ratingsReceived.reduce((sum, r) => sum + r.score, 0);
-      const avgRating = target.ratingsReceived.length > 0 ? totalScore / target.ratingsReceived.length : 0;
+      // Find rating average
+      const targetRatings = ratingsReceived.filter(r => r.ratedId === target.id);
+      const totalScore = targetRatings.reduce((sum, r) => sum + r.score, 0);
+      const avgRating = targetRatings.length > 0 ? totalScore / targetRatings.length : 0;
 
       // Compatibility score
       let compScore = 0;
       if (viewer) {
         const overlap = viewer.learnSkills.filter((s) =>
-          target.teachSkills.some((ts) => ts.id === s.id)
+          target.teachSkills.some((ts) => ts.toString() === s.toString())
         ).length;
         const reverseOverlap = viewer.teachSkills.filter((s) =>
-          target.learnSkills.some((ls) => ls.id === s.id)
+          target.learnSkills.some((ls) => ls.toString() === s.toString())
         ).length;
         compScore = overlap * 2 + reverseOverlap;
       }
 
       return {
-        ...target,
+        ...target.toJSON(),
         avgRating,
         compatibilityScore: compScore,
       };
@@ -341,7 +293,7 @@ export const browseUsers = async (req: Request, res: Response) => {
       return b.avgRating - a.avgRating;
     });
 
-    // 6. Paginate results in memory (since we sorted in-memory)
+    // 6. Paginate results
     const paginatedUsers = usersWithScores.slice(skip, skip + currentLimit);
     const totalCount = usersWithScores.length;
 
@@ -362,18 +314,18 @@ export const browseUsers = async (req: Request, res: Response) => {
 
 export const getLeaderboard = async (req: Request, res: Response) => {
   try {
-    const users = await prisma.user.findMany({
-      include: {
-        sessionsAsTeacher: { where: { status: "COMPLETED" } },
-        sessionsAsLearner: { where: { status: "COMPLETED" } },
-        ratingsReceived: true,
-      }
-    });
+    const users = await User.find().populate("teachSkills learnSkills");
+    const completedSessions = await Session.find({ status: "COMPLETED" });
+    const allRatings = await Rating.find();
 
     const leaderboard = users.map(u => {
-      const completedCount = u.sessionsAsTeacher.length + u.sessionsAsLearner.length;
-      const totalScore = u.ratingsReceived.reduce((sum, r) => sum + r.score, 0);
-      const avgRating = u.ratingsReceived.length > 0 ? totalScore / u.ratingsReceived.length : 0;
+      const teacherCount = completedSessions.filter(s => s.teacherId === u.id).length;
+      const learnerCount = completedSessions.filter(s => s.learnerId === u.id).length;
+      const completedCount = teacherCount + learnerCount;
+
+      const userRatings = allRatings.filter(r => r.ratedId === u.id);
+      const totalScore = userRatings.reduce((sum, r) => sum + r.score, 0);
+      const avgRating = userRatings.length > 0 ? totalScore / userRatings.length : 0;
 
       return {
         id: u.id,

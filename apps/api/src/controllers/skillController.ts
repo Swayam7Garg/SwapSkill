@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { prisma } from "../config/prisma.ts";
-import { SkillCategory } from "@prisma/client";
+import { Skill, SkillCategory } from "../models/Skill.ts";
 import { z } from "zod";
 
 const createSkillSchema = z.object({
@@ -10,21 +9,17 @@ const createSkillSchema = z.object({
 
 export const listSkills = async (req: Request, res: Response) => {
   try {
-    const skills = await prisma.skill.findMany({
-      orderBy: {
-        name: "asc",
-      }
-    });
+    const skills = await Skill.find().sort({ name: "asc" });
 
     // Group skills by category
     const groupedSkills = skills.reduce((acc, skill) => {
-      const cat = skill.category;
+      const cat = skill.category as SkillCategory;
       if (!acc[cat]) {
         acc[cat] = [];
       }
       acc[cat].push(skill);
       return acc;
-    }, {} as Record<SkillCategory, typeof skills>);
+    }, {} as Record<SkillCategory, any[]>);
 
     return res.status(200).json({
       skills,
@@ -51,25 +46,18 @@ export const createSkill = async (req: Request, res: Response) => {
     const { name, category } = result.data;
 
     // Check if skill already exists (case insensitive)
-    const existingSkill = await prisma.skill.findFirst({
-      where: {
-        name: {
-          equals: name,
-          mode: "insensitive",
-        },
-        category,
-      }
+    const existingSkill = await Skill.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+      category
     });
 
     if (existingSkill) {
       return res.status(400).json({ error: "A skill with this name already exists in this category." });
     }
 
-    const newSkill = await prisma.skill.create({
-      data: {
-        name,
-        category,
-      }
+    const newSkill = await Skill.create({
+      name,
+      category,
     });
 
     return res.status(201).json(newSkill);

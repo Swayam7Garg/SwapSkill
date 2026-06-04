@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { prisma } from "../config/prisma.ts";
+import { User } from "../models/User.ts";
+import { Session, SessionStatus } from "../models/Session.ts";
+import { Rating } from "../models/Rating.ts";
+import { SwapRequest } from "../models/SwapRequest.ts";
 
 export const getDashboardData = async (req: Request, res: Response) => {
   try {
@@ -9,96 +12,79 @@ export const getDashboardData = async (req: Request, res: Response) => {
     }
 
     // 1. Fetch current user DB record
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-        ratingsReceived: true,
-      }
-    });
-
+    const user = await User.findOne({ clerkId }).populate("teachSkills learnSkills");
     if (!user) {
       return res.status(404).json({ error: "User profile not found." });
     }
 
+    const ratingsReceived = await Rating.find({ ratedId: user.id });
+
     // 2. Widget: Pending Requests (latest 3 PENDING incoming requests)
-    const pendingRequests = await prisma.swapRequest.findMany({
-      where: {
-        receiverId: user.id,
-        status: "PENDING",
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            college: true,
-          }
-        }
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 3,
+    const pendingRequests = await SwapRequest.find({
+      receiverId: user.id,
+      status: "PENDING",
+    })
+      .populate({ path: "senderId", select: "_id name avatarUrl college" })
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    const pendingRequestsCount = await SwapRequest.countDocuments({
+      receiverId: user.id,
+      status: "PENDING",
     });
 
-    const pendingRequestsCount = await prisma.swapRequest.count({
-      where: {
-        receiverId: user.id,
-        status: "PENDING",
-      }
+    const formattedPendingRequests = pendingRequests.map(r => {
+      const rObj = r.toJSON();
+      const sender = rObj.senderId;
+      delete rObj.senderId;
+      return {
+        ...rObj,
+        sender
+      };
     });
 
     // 3. Widget: Upcoming Sessions (next 3 scheduled sessions)
-    const upcomingSessions = await prisma.session.findMany({
-      where: {
-        OR: [
-          { teacherId: user.id },
-          { learnerId: user.id }
-        ],
-        status: "SCHEDULED",
-        date: {
-          gte: new Date(),
-        }
-      },
-      include: {
-        teacher: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-          }
-        },
-        learner: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-          }
-        },
-        skill: true,
-      },
-      orderBy: {
-        date: "asc",
-      },
-      take: 3,
+    const upcomingSessions = await Session.find({
+      $or: [
+        { teacherId: user.id },
+        { learnerId: user.id }
+      ],
+      status: SessionStatus.SCHEDULED,
+      date: { $gte: new Date() }
+    })
+      .populate({ path: "teacherId", select: "_id name avatarUrl" })
+      .populate({ path: "learnerId", select: "_id name avatarUrl" })
+      .populate("skillId")
+      .sort({ date: 1 })
+      .limit(3);
+
+    const formattedUpcomingSessions = upcomingSessions.map(s => {
+      const sObj = s.toJSON();
+      const teacher = sObj.teacherId;
+      const learner = sObj.learnerId;
+      const skill = sObj.skillId;
+      delete sObj.teacherId;
+      delete sObj.learnerId;
+      delete sObj.skillId;
+      return {
+        ...sObj,
+        teacher,
+        learner,
+        skill
+      };
     });
 
     // 4. Widget: Swap Stats
-    const completedSessionsCount = await prisma.session.count({
-      where: {
-        OR: [
-          { teacherId: user.id },
-          { learnerId: user.id }
-        ],
-        status: "COMPLETED",
-      }
+    const completedSessionsCount = await Session.countDocuments({
+      $or: [
+        { teacherId: user.id },
+        { learnerId: user.id }
+      ],
+      status: SessionStatus.COMPLETED,
     });
 
-    const totalRatingsScore = user.ratingsReceived.reduce((sum, r) => sum + r.score, 0);
-    const avgRatingReceived = user.ratingsReceived.length > 0 ? totalRatingsScore / user.ratingsReceived.length : 0;
+    const totalRatingsScore = ratingsReceived.reduce((sum, r) => sum + r.score, 0);
+    const avgRatingReceived = ratingsReceived.length > 0 ? totalRatingsScore / ratingsReceived.length : 0;
     const skillsSharedCount = user.teachSkills.length + user.learnSkills.length;
 
     const stats = {
@@ -108,33 +94,26 @@ export const getDashboardData = async (req: Request, res: Response) => {
     };
 
     // 5. Widget: Suggested Matches (top 3 compatible users)
-    const otherUsers = await prisma.user.findMany({
-      where: {
-        id: { not: user.id }
-      },
-      include: {
-        teachSkills: true,
-        learnSkills: true,
-        ratingsReceived: true,
-      }
-    });
+    const otherUsers = await User.find({ _id: { $ne: user.id } }).populate("teachSkills learnSkills");
+    const otherRatings = await Rating.find({ ratedId: { $in: otherUsers.map(u => u.id) } });
 
     const matchScores = otherUsers.map(target => {
       // Compatibility overlap logic
       const overlap = user.learnSkills.filter(s =>
-        target.teachSkills.some(ts => ts.id === s.id)
+        target.teachSkills.some(ts => ts.toString() === s.toString())
       ).length;
       const reverseOverlap = user.teachSkills.filter(s =>
-        target.learnSkills.some(ls => ls.id === s.id)
+        target.learnSkills.some(ls => ls.toString() === s.toString())
       ).length;
       const score = (overlap * 2) + reverseOverlap;
 
       // Avg rating
-      const targetTotal = target.ratingsReceived.reduce((sum, r) => sum + r.score, 0);
-      const targetAvg = target.ratingsReceived.length > 0 ? targetTotal / target.ratingsReceived.length : 0;
+      const targetRatings = otherRatings.filter(r => r.ratedId === target.id);
+      const targetTotal = targetRatings.reduce((sum, r) => sum + r.score, 0);
+      const targetAvg = targetRatings.length > 0 ? targetTotal / targetRatings.length : 0;
 
       return {
-        ...target,
+        ...target.toJSON(),
         compatibilityScore: score,
         avgRating: targetAvg,
       };
@@ -160,41 +139,30 @@ export const getDashboardData = async (req: Request, res: Response) => {
     }));
 
     // 6. Widget: Recent Activity Feed (last 5 actions combined)
-    // Fetch individual feeds
-    const sentReqs = await prisma.swapRequest.findMany({
-      where: { senderId: user.id },
-      include: { receiver: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+    const sentReqs = await SwapRequest.find({ senderId: user.id })
+      .populate({ path: "receiverId", select: "name" })
+      .sort({ createdAt: -1 })
+      .limit(5);
 
-    const recReqs = await prisma.swapRequest.findMany({
-      where: { receiverId: user.id },
-      include: { sender: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+    const recReqs = await SwapRequest.find({ receiverId: user.id })
+      .populate({ path: "senderId", select: "name" })
+      .sort({ createdAt: -1 })
+      .limit(5);
 
-    const compSessions = await prisma.session.findMany({
-      where: {
-        OR: [{ teacherId: user.id }, { learnerId: user.id }],
-        status: "COMPLETED",
-      },
-      include: {
-        teacher: { select: { id: true, name: true } },
-        learner: { select: { id: true, name: true } },
-        skill: true,
-      },
-      orderBy: { date: "desc" },
-      take: 5,
-    });
+    const compSessions = await Session.find({
+      $or: [{ teacherId: user.id }, { learnerId: user.id }],
+      status: SessionStatus.COMPLETED,
+    })
+      .populate({ path: "teacherId", select: "name" })
+      .populate({ path: "learnerId", select: "name" })
+      .populate("skillId")
+      .sort({ date: -1 })
+      .limit(5);
 
-    const ratingsRec = await prisma.rating.findMany({
-      where: { ratedId: user.id },
-      include: { rater: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+    const ratingsRec = await Rating.find({ ratedId: user.id })
+      .populate({ path: "raterId", select: "name" })
+      .sort({ createdAt: -1 })
+      .limit(5);
 
     // Merge and map to generic feed interface
     type FeedItem = {
@@ -207,41 +175,53 @@ export const getDashboardData = async (req: Request, res: Response) => {
     const feed: FeedItem[] = [];
 
     sentReqs.forEach(r => {
-      feed.push({
-        type: "request_sent",
-        title: `Sent connection request`,
-        description: `You asked to swap skills with ${r.receiver.name}. Status: ${r.status}`,
-        timestamp: r.createdAt,
-      });
+      const rec: any = r.receiverId;
+      if (rec) {
+        feed.push({
+          type: "request_sent",
+          title: `Sent connection request`,
+          description: `You asked to swap skills with ${rec.name}. Status: ${r.status}`,
+          timestamp: r.createdAt as Date,
+        });
+      }
     });
 
     recReqs.forEach(r => {
-      feed.push({
-        type: "request_received",
-        title: `Received connection request`,
-        description: `${r.sender.name} sent you a skill swap request.`,
-        timestamp: r.createdAt,
-      });
+      const snd: any = r.senderId;
+      if (snd) {
+        feed.push({
+          type: "request_received",
+          title: `Received connection request`,
+          description: `${snd.name} sent you a skill swap request.`,
+          timestamp: r.createdAt as Date,
+        });
+      }
     });
 
     compSessions.forEach(s => {
       const isTeacher = s.teacherId === user.id;
-      const partnerName = isTeacher ? s.learner.name : s.teacher.name;
-      feed.push({
-        type: "session_completed",
-        title: `Completed learning session`,
-        description: `Finished session on ${s.skill.name} with ${partnerName}.`,
-        timestamp: s.date,
-      });
+      const partner: any = isTeacher ? s.learnerId : s.teacherId;
+      const sk: any = s.skillId;
+      if (partner && sk) {
+        feed.push({
+          type: "session_completed",
+          title: `Completed learning session`,
+          description: `Finished session on ${sk.name} with ${partner.name}.`,
+          timestamp: s.date,
+        });
+      }
     });
 
     ratingsRec.forEach(r => {
-      feed.push({
-        type: "rating_received",
-        title: `Received a new rating`,
-        description: `${r.rater.name} rated you ${r.score}/5 stars: "${r.comment || 'No comment'}"`,
-        timestamp: r.createdAt,
-      });
+      const rtr: any = r.raterId;
+      if (rtr) {
+        feed.push({
+          type: "rating_received",
+          title: `Received a new rating`,
+          description: `${rtr.name} rated you ${r.score}/5 stars: "${r.comment || 'No comment'}"`,
+          timestamp: r.createdAt as Date,
+        });
+      }
     });
 
     // Sort combined feed and take top 5
@@ -251,9 +231,9 @@ export const getDashboardData = async (req: Request, res: Response) => {
     return res.status(200).json({
       pendingRequests: {
         count: pendingRequestsCount,
-        list: pendingRequests,
+        list: formattedPendingRequests,
       },
-      upcomingSessions,
+      upcomingSessions: formattedUpcomingSessions,
       stats,
       suggestedMatches,
       recentActivity,

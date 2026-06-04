@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { prisma } from "../config/prisma.ts";
+import { User } from "../models/User.ts";
+import { SwapRequest, RequestStatus } from "../models/SwapRequest.ts";
 import { emitToUser } from "../utils/socket.ts";
 import { z } from "zod";
 
 const createRequestSchema = z.object({
-  receiverId: z.string().min(1), // database user ID of the receiver
+  receiverId: z.string().min(1),
   message: z.string().max(250).optional(),
 });
 
@@ -23,10 +24,7 @@ export const sendRequest = async (req: Request, res: Response) => {
     const { receiverId, message } = result.data;
 
     // Find sender DB record
-    const sender = await prisma.user.findUnique({
-      where: { clerkId: senderClerkId },
-    });
-
+    const sender = await User.findOne({ clerkId: senderClerkId });
     if (!sender) {
       return res.status(404).json({ error: "Sender profile not found" });
     }
@@ -36,22 +34,17 @@ export const sendRequest = async (req: Request, res: Response) => {
     }
 
     // Find receiver DB record
-    const receiver = await prisma.user.findUnique({
-      where: { id: receiverId },
-    });
-
+    const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({ error: "Receiver profile not found" });
     }
 
-    // Check if request already exists between them (PENDING or ACCEPTED)
-    const existingRequest = await prisma.swapRequest.findFirst({
-      where: {
-        OR: [
-          { senderId: sender.id, receiverId, status: { in: ["PENDING", "ACCEPTED"] } },
-          { senderId: receiverId, receiverId: sender.id, status: { in: ["PENDING", "ACCEPTED"] } }
-        ]
-      }
+    // Check if request already exists (PENDING or ACCEPTED)
+    const existingRequest = await SwapRequest.findOne({
+      $or: [
+        { senderId: sender.id, receiverId, status: { $in: ["PENDING", "ACCEPTED"] } },
+        { senderId: receiverId, receiverId: sender.id, status: { $in: ["PENDING", "ACCEPTED"] } }
+      ]
     });
 
     if (existingRequest) {
@@ -59,17 +52,11 @@ export const sendRequest = async (req: Request, res: Response) => {
     }
 
     // Create the SwapRequest
-    const swapRequest = await prisma.swapRequest.create({
-      data: {
-        senderId: sender.id,
-        receiverId,
-        message,
-        status: "PENDING",
-      },
-      include: {
-        sender: true,
-        receiver: true,
-      }
+    const swapRequest = await SwapRequest.create({
+      senderId: sender.id,
+      receiverId,
+      message,
+      status: RequestStatus.PENDING,
     });
 
     // Notify receiver over Socket.io
@@ -80,7 +67,17 @@ export const sendRequest = async (req: Request, res: Response) => {
       message: message,
     });
 
-    return res.status(201).json(swapRequest);
+    // Format response to match Prisma fields
+    return res.status(201).json({
+      id: swapRequest.id,
+      senderId: swapRequest.senderId,
+      receiverId: swapRequest.receiverId,
+      message: swapRequest.message,
+      status: swapRequest.status,
+      createdAt: swapRequest.createdAt,
+      sender: sender.toJSON(),
+      receiver: receiver.toJSON(),
+    });
   } catch (error) {
     console.error("Error sending request:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -94,33 +91,35 @@ export const getInbox = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const inbox = await prisma.swapRequest.findMany({
-      where: {
-        receiverId: user.id,
-        status: "PENDING",
-      },
-      include: {
-        sender: {
-          include: {
-            teachSkills: true,
-            learnSkills: true,
-          }
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const inbox = await SwapRequest.find({
+      receiverId: user.id,
+      status: "PENDING",
+    })
+      .populate({
+        path: "senderId",
+        populate: {
+          path: "teachSkills learnSkills"
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    // Format response matching Prisma (nesting under sender/receiver rather than senderId/receiverId)
+    const formattedInbox = inbox.map(req => {
+      const rObj = req.toJSON();
+      const sender = rObj.senderId;
+      delete rObj.senderId;
+      return {
+        ...rObj,
+        sender
+      };
     });
 
-    return res.status(200).json(inbox);
+    return res.status(200).json(formattedInbox);
   } catch (error) {
     console.error("Error fetching inbox:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -134,32 +133,34 @@ export const getSent = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const sent = await prisma.swapRequest.findMany({
-      where: {
-        senderId: user.id,
-      },
-      include: {
-        receiver: {
-          include: {
-            teachSkills: true,
-            learnSkills: true,
-          }
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const sent = await SwapRequest.find({
+      senderId: user.id,
+    })
+      .populate({
+        path: "receiverId",
+        populate: {
+          path: "teachSkills learnSkills"
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    // Format response matching Prisma (receiver mapping)
+    const formattedSent = sent.map(req => {
+      const rObj = req.toJSON();
+      const receiver = rObj.receiverId;
+      delete rObj.receiverId;
+      return {
+        ...rObj,
+        receiver
+      };
     });
 
-    return res.status(200).json(sent);
+    return res.status(200).json(formattedSent);
   } catch (error) {
     console.error("Error fetching sent requests:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -175,28 +176,20 @@ export const acceptRequest = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Verify request exists and is pending for this user
-    const swapRequest = await prisma.swapRequest.findUnique({
-      where: { id },
-      include: {
-        sender: true,
-        receiver: true,
-      }
-    });
+    const swapRequest = await SwapRequest.findById(id)
+      .populate("senderId")
+      .populate("receiverId");
 
     if (!swapRequest) {
       return res.status(404).json({ error: "Request not found" });
     }
 
-    if (swapRequest.receiverId !== user.id) {
+    if (swapRequest.receiverId.id !== user.id) {
       return res.status(403).json({ error: "Forbidden. You cannot accept this request." });
     }
 
@@ -204,19 +197,17 @@ export const acceptRequest = async (req: Request, res: Response) => {
       return res.status(400).json({ error: `Request has already been ${swapRequest.status.toLowerCase()}.` });
     }
 
-    // Update request
-    const updatedRequest = await prisma.swapRequest.update({
-      where: { id },
-      data: { status: "ACCEPTED" },
-    });
+    swapRequest.status = RequestStatus.ACCEPTED;
+    await swapRequest.save();
 
     // Notify sender over Socket.io
-    emitToUser(swapRequest.sender.clerkId, "swap:request:accepted", {
+    const sender: any = swapRequest.senderId;
+    emitToUser(sender.clerkId, "swap:request:accepted", {
       id: swapRequest.id,
       receiverName: user.name,
     });
 
-    return res.status(200).json(updatedRequest);
+    return res.status(200).json(swapRequest);
   } catch (error) {
     console.error("Error accepting request:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -232,18 +223,12 @@ export const rejectRequest = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const swapRequest = await prisma.swapRequest.findUnique({
-      where: { id },
-    });
-
+    const swapRequest = await SwapRequest.findById(id);
     if (!swapRequest) {
       return res.status(404).json({ error: "Request not found" });
     }
@@ -256,12 +241,10 @@ export const rejectRequest = async (req: Request, res: Response) => {
       return res.status(400).json({ error: `Request has already been ${swapRequest.status.toLowerCase()}.` });
     }
 
-    const updatedRequest = await prisma.swapRequest.update({
-      where: { id },
-      data: { status: "REJECTED" },
-    });
+    swapRequest.status = RequestStatus.REJECTED;
+    await swapRequest.save();
 
-    return res.status(200).json(updatedRequest);
+    return res.status(200).json(swapRequest);
   } catch (error) {
     console.error("Error rejecting request:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -277,18 +260,12 @@ export const cancelRequest = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const swapRequest = await prisma.swapRequest.findUnique({
-      where: { id },
-    });
-
+    const swapRequest = await SwapRequest.findById(id);
     if (!swapRequest) {
       return res.status(404).json({ error: "Request not found" });
     }
@@ -297,12 +274,10 @@ export const cancelRequest = async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Forbidden. You can only cancel your own requests." });
     }
 
-    const updatedRequest = await prisma.swapRequest.update({
-      where: { id },
-      data: { status: "CANCELLED" },
-    });
+    swapRequest.status = RequestStatus.CANCELLED;
+    await swapRequest.save();
 
-    return res.status(200).json(updatedRequest);
+    return res.status(200).json(swapRequest);
   } catch (error) {
     console.error("Error cancelling request:", error);
     return res.status(500).json({ error: "Internal server error" });

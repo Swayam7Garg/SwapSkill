@@ -1,17 +1,41 @@
 import { Request, Response } from "express";
-import { prisma } from "../config/prisma.ts";
+import { User } from "../models/User.ts";
+import { Session, SessionStatus } from "../models/Session.ts";
+import { Rating } from "../models/Rating.ts";
+import { Skill } from "../models/Skill.ts";
 import { z } from "zod";
 
 const createSessionSchema = z.object({
   teacherId: z.string().min(1),
   learnerId: z.string().min(1),
   skillId: z.string().min(1),
-  date: z.string().datetime(), // ISO string date-time
+  date: z.string().datetime(),
   durationMin: z.number().int().positive().default(60),
   mode: z.enum(["ONLINE", "OFFLINE"]).default("ONLINE"),
   meetLink: z.string().url().optional().nullable(),
   location: z.string().optional().nullable(),
 });
+
+// Helper to format session output to match Prisma models
+const formatSession = (s: any, ratingObj?: any) => {
+  const sObj = s.toJSON ? s.toJSON() : s;
+  const teacher = sObj.teacherId;
+  const learner = sObj.learnerId;
+  const skill = sObj.skillId;
+  const rating = ratingObj || sObj.rating;
+
+  delete sObj.teacherId;
+  delete sObj.learnerId;
+  delete sObj.skillId;
+
+  return {
+    ...sObj,
+    teacher,
+    learner,
+    skill,
+    rating: rating || null
+  };
+};
 
 export const createSession = async (req: Request, res: Response) => {
   try {
@@ -28,10 +52,7 @@ export const createSession = async (req: Request, res: Response) => {
     const { teacherId, learnerId, skillId, date, durationMin, mode, meetLink, location } = result.data;
 
     // Fetch user matching clerkId
-    const currentUser = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const currentUser = await User.findOne({ clerkId });
     if (!currentUser) {
       return res.status(404).json({ error: "Current user profile not found." });
     }
@@ -42,26 +63,24 @@ export const createSession = async (req: Request, res: Response) => {
     }
 
     // Create session
-    const session = await prisma.session.create({
-      data: {
-        teacherId,
-        learnerId,
-        skillId,
-        date: new Date(date),
-        durationMin,
-        mode,
-        meetLink,
-        location,
-        status: "SCHEDULED",
-      },
-      include: {
-        teacher: true,
-        learner: true,
-        skill: true,
-      }
+    const session = await Session.create({
+      teacherId,
+      learnerId,
+      skillId,
+      date: new Date(date),
+      durationMin,
+      mode,
+      meetLink,
+      location,
+      status: SessionStatus.SCHEDULED,
     });
 
-    return res.status(201).json(session);
+    const populatedSession = await Session.findById(session.id)
+      .populate("teacherId")
+      .populate("learnerId")
+      .populate("skillId");
+
+    return res.status(201).json(formatSession(populatedSession));
   } catch (error) {
     console.error("Error creating session:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -75,33 +94,32 @@ export const getMySessions = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User profile not found." });
     }
 
-    const sessions = await prisma.session.findMany({
-      where: {
-        OR: [
-          { teacherId: user.id },
-          { learnerId: user.id }
-        ]
-      },
-      include: {
-        teacher: true,
-        learner: true,
-        skill: true,
-        rating: true,
-      },
-      orderBy: {
-        date: "desc",
-      }
+    const sessions = await Session.find({
+      $or: [
+        { teacherId: user.id },
+        { learnerId: user.id }
+      ]
+    })
+      .populate("teacherId")
+      .populate("learnerId")
+      .populate("skillId")
+      .sort({ date: -1 });
+
+    // Fetch ratings for these sessions
+    const sessionIds = sessions.map(s => s.id);
+    const ratings = await Rating.find({ sessionId: { $in: sessionIds } });
+
+    const formattedSessions = sessions.map(s => {
+      const r = ratings.find(rate => rate.sessionId === s.id);
+      return formatSession(s, r);
     });
 
-    return res.status(200).json(sessions);
+    return res.status(200).json(formattedSessions);
   } catch (error) {
     console.error("Error fetching sessions:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -117,23 +135,15 @@ export const getSessionById = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User profile not found." });
     }
 
-    const session = await prisma.session.findUnique({
-      where: { id },
-      include: {
-        teacher: true,
-        learner: true,
-        skill: true,
-        rating: true,
-      }
-    });
+    const session = await Session.findById(id)
+      .populate("teacherId")
+      .populate("learnerId")
+      .populate("skillId");
 
     if (!session) {
       return res.status(404).json({ error: "Session not found." });
@@ -144,7 +154,9 @@ export const getSessionById = async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Forbidden. You are not a participant in this session." });
     }
 
-    return res.status(200).json(session);
+    const ratingObj = await Rating.findOne({ sessionId: id });
+
+    return res.status(200).json(formatSession(session, ratingObj));
   } catch (error) {
     console.error("Error fetching session details:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -160,18 +172,12 @@ export const completeSession = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User profile not found." });
     }
 
-    const session = await prisma.session.findUnique({
-      where: { id },
-    });
-
+    const session = await Session.findById(id);
     if (!session) {
       return res.status(404).json({ error: "Session not found." });
     }
@@ -181,17 +187,15 @@ export const completeSession = async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Forbidden. You cannot manage this session." });
     }
 
-    const updatedSession = await prisma.session.update({
-      where: { id },
-      data: { status: "COMPLETED" },
-      include: {
-        teacher: true,
-        learner: true,
-        skill: true,
-      }
-    });
+    session.status = SessionStatus.COMPLETED;
+    await session.save();
 
-    return res.status(200).json(updatedSession);
+    const populatedSession = await Session.findById(session.id)
+      .populate("teacherId")
+      .populate("learnerId")
+      .populate("skillId");
+
+    return res.status(200).json(formatSession(populatedSession));
   } catch (error) {
     console.error("Error completing session:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -207,18 +211,12 @@ export const cancelSession = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-
+    const user = await User.findOne({ clerkId });
     if (!user) {
       return res.status(404).json({ error: "User profile not found." });
     }
 
-    const session = await prisma.session.findUnique({
-      where: { id },
-    });
-
+    const session = await Session.findById(id);
     if (!session) {
       return res.status(404).json({ error: "Session not found." });
     }
@@ -228,17 +226,15 @@ export const cancelSession = async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Forbidden. You cannot manage this session." });
     }
 
-    const updatedSession = await prisma.session.update({
-      where: { id },
-      data: { status: "CANCELLED" },
-      include: {
-        teacher: true,
-        learner: true,
-        skill: true,
-      }
-    });
+    session.status = SessionStatus.CANCELLED;
+    await session.save();
 
-    return res.status(200).json(updatedSession);
+    const populatedSession = await Session.findById(session.id)
+      .populate("teacherId")
+      .populate("learnerId")
+      .populate("skillId");
+
+    return res.status(200).json(formatSession(populatedSession));
   } catch (error) {
     console.error("Error cancelling session:", error);
     return res.status(500).json({ error: "Internal server error" });

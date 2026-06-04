@@ -8,8 +8,9 @@ import cron from "node-cron";
 dotenv.config();
 
 import { initSocket } from "./utils/socket.ts";
-import { prisma } from "./config/prisma.ts";
+import { connectDB } from "./config/db.ts";
 import { emitToUser } from "./utils/socket.ts";
+import { Session, SessionStatus } from "./models/Session.ts";
 
 // Import Routes
 import userRoutes from "./routes/userRoutes.ts";
@@ -23,12 +24,15 @@ const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
+// Connect to MongoDB
+connectDB();
+
 // Configure Socket.io
 initSocket(server);
 
 // Middlewares
 app.use(cors({
-  origin: "*", // Adjust in production to match frontend URL
+  origin: "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "x-mock-user-id"]
 }));
@@ -53,38 +57,39 @@ cron.schedule("* * * * *", async () => {
     const targetTimeMin = new Date(Date.now() + 14 * 60 * 1000);
     const targetTimeMax = new Date(Date.now() + 16 * 60 * 1000);
 
-    const sessions = await prisma.session.findMany({
-      where: {
-        status: "SCHEDULED",
-        date: {
-          gte: targetTimeMin,
-          lt: targetTimeMax,
-        }
-      },
-      include: {
-        teacher: true,
-        learner: true,
-        skill: true,
+    const sessions = await Session.find({
+      status: SessionStatus.SCHEDULED,
+      date: {
+        $gte: targetTimeMin,
+        $lt: targetTimeMax,
       }
-    });
+    })
+      .populate("teacherId")
+      .populate("learnerId")
+      .populate("skillId");
 
     sessions.forEach((session) => {
+      const teacher: any = session.teacherId;
+      const learner: any = session.learnerId;
+      const skill: any = session.skillId;
+      if (!teacher || !learner || !skill) return;
+
       // Send reminder to teacher
-      emitToUser(session.teacher.clerkId, "session:reminder", {
+      emitToUser(teacher.clerkId, "session:reminder", {
         sessionId: session.id,
         role: "teacher",
-        partnerName: session.learner.name,
-        skillName: session.skill.name,
+        partnerName: learner.name,
+        skillName: skill.name,
         time: session.date,
         meetLink: session.meetLink,
       });
 
       // Send reminder to learner
-      emitToUser(session.learner.clerkId, "session:reminder", {
+      emitToUser(learner.clerkId, "session:reminder", {
         sessionId: session.id,
         role: "learner",
-        partnerName: session.teacher.name,
-        skillName: session.skill.name,
+        partnerName: teacher.name,
+        skillName: skill.name,
         time: session.date,
         meetLink: session.meetLink,
       });

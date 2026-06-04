@@ -1,17 +1,26 @@
-import { PrismaClient, SkillCategory } from "@prisma/client";
+import mongoose from "mongoose";
+import { Skill, SkillCategory } from "../src/models/Skill.ts";
+import { User } from "../src/models/User.ts";
+import { Session, SessionStatus } from "../src/models/Session.ts";
+import { Rating } from "../src/models/Rating.ts";
+import { SwapRequest, RequestStatus } from "../src/models/SwapRequest.ts";
+import dotenv from "dotenv";
 
-const prisma = new PrismaClient();
+dotenv.config();
+
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/skillswap";
 
 async function main() {
-  console.log("Seeding database...");
+  console.log("Connecting to MongoDB for seeding...");
+  await mongoose.connect(MONGODB_URI);
+  console.log("Connected. Seeding database...");
 
   // 1. Clean Database
-  await prisma.rating.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.swapRequest.deleteMany();
-  // Clear relations in join tables by disconnecting or deleting
-  await prisma.user.deleteMany();
-  await prisma.skill.deleteMany();
+  await Rating.deleteMany({});
+  await Session.deleteMany({});
+  await SwapRequest.deleteMany({});
+  await User.deleteMany({});
+  await Skill.deleteMany({});
 
   console.log("Cleaned old records.");
 
@@ -86,15 +95,14 @@ async function main() {
 
   const createdSkills = [];
   for (const skill of skillsData) {
-    const s = await prisma.skill.create({ data: skill });
+    const s = await Skill.create(skill);
     createdSkills.push(s);
   }
   console.log(`Seeded ${createdSkills.length} skills.`);
 
-  // Find some skills by name helper
   const findSkill = (name: string) => createdSkills.find(s => s.name === name)!;
 
-  // 3. Seed Users (8 demo users with varied teach/learn skills)
+  // 3. Seed Users (8 demo users)
   const usersData = [
     {
       clerkId: "user_demo_1",
@@ -180,68 +188,61 @@ async function main() {
 
   const createdUsers = [];
   for (const u of usersData) {
-    const user = await prisma.user.create({
-      data: {
-        clerkId: u.clerkId,
-        name: u.name,
-        email: u.email,
-        college: u.college,
-        bio: u.bio,
-        avatarUrl: u.avatarUrl,
-        teachSkills: {
-          connect: u.teach.map(name => ({ id: findSkill(name).id }))
-        },
-        learnSkills: {
-          connect: u.learn.map(name => ({ id: findSkill(name).id }))
-        }
-      }
+    const user = await User.create({
+      clerkId: u.clerkId,
+      name: u.name,
+      email: u.email,
+      college: u.college,
+      bio: u.bio,
+      avatarUrl: u.avatarUrl,
+      teachSkills: u.teach.map(name => findSkill(name).id),
+      learnSkills: u.learn.map(name => findSkill(name).id)
     });
     createdUsers.push(user);
   }
   console.log(`Seeded ${createdUsers.length} users.`);
 
-  // Find user by clerk ID helper
   const findUser = (clerkId: string) => createdUsers.find(u => u.clerkId === clerkId)!;
 
   // 4. Seed Completed Sessions with Ratings (5 sessions)
   const sessionsData = [
     {
-      teacher: "user_demo_1", // Alex Rivera (React)
-      learner: "user_demo_2", // Sofia Chen (UI/UX)
+      teacher: "user_demo_1",
+      learner: "user_demo_2",
       skill: "React & Next.js",
-      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       score: 5,
       comment: "Alex is awesome! Explained React props and states very clearly with real-life analogies."
     },
     {
-      teacher: "user_demo_2", // Sofia Chen (Figma)
-      learner: "user_demo_1", // Alex Rivera
+      teacher: "user_demo_2",
+      learner: "user_demo_1",
       skill: "UI/UX & Figma",
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       score: 5,
       comment: "Sofia taught me auto layouts and components. My frontend pages will look much better now!"
     },
     {
-      teacher: "user_demo_3", // Carlos Mendez (Guitar)
-      learner: "user_demo_2", // Sofia Chen
+      teacher: "user_demo_3",
+      learner: "user_demo_2",
       skill: "Acoustic Guitar",
-      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       score: 4,
       comment: "Carlos was very patient. Taught me basic chords. Exciting!"
     },
     {
-      teacher: "user_demo_4", // Elena Rostova (Calculus)
-      learner: "user_demo_3", // Carlos Mendez
+      teacher: "user_demo_4",
+      learner: "user_demo_3",
       skill: "Calculus I & II",
-      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       score: 5,
       comment: "Integrals make sense now. Elena is super smart!"
     },
     {
-      teacher: "user_demo_5", // Jordan Smith (Yoga)
-      learner: "user_demo_7", // Maya Patel
+      teacher: "user_demo_5",
+      learner: "user_demo_7",
       skill: "Vinyasa Yoga",
-      date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+      date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
       score: 4,
       comment: "Very relaxing session. Jordan guided the breathing poses perfectly."
     }
@@ -252,46 +253,42 @@ async function main() {
     const learner = findUser(s.learner);
     const skill = findSkill(s.skill);
 
-    const session = await prisma.session.create({
-      data: {
-        teacherId: teacher.id,
-        learnerId: learner.id,
-        skillId: skill.id,
-        date: s.date,
-        durationMin: 60,
-        mode: "ONLINE",
-        status: "COMPLETED",
-        meetLink: "https://meet.google.com/abc-defg-hij",
-      }
+    const session = await Session.create({
+      teacherId: teacher.id,
+      learnerId: learner.id,
+      skillId: skill.id,
+      date: s.date,
+      durationMin: 60,
+      mode: "ONLINE",
+      status: SessionStatus.COMPLETED,
+      meetLink: "https://meet.google.com/abc-defg-hij",
     });
 
-    await prisma.rating.create({
-      data: {
-        sessionId: session.id,
-        raterId: learner.id,
-        ratedId: teacher.id,
-        score: s.score,
-        comment: s.comment,
-      }
+    await Rating.create({
+      sessionId: session.id,
+      raterId: learner.id,
+      ratedId: teacher.id,
+      score: s.score,
+      comment: s.comment,
     });
   }
   console.log("Seeded 5 completed sessions with ratings.");
 
-  // Also seed 2 upcoming scheduled sessions for dashboard tests
+  // Seed 2 upcoming scheduled sessions
   const upcomingSessionsData = [
     {
-      teacher: "user_demo_1", // Alex (React)
-      learner: "user_demo_3", // Carlos
+      teacher: "user_demo_1",
+      learner: "user_demo_3",
       skill: "React & Next.js",
-      date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
+      date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
       mode: "ONLINE",
       meetLink: "https://meet.google.com/xyz-pdqr-lmn",
     },
     {
-      teacher: "user_demo_6", // Liam (Python)
-      learner: "user_demo_5", // Jordan
+      teacher: "user_demo_6",
+      learner: "user_demo_5",
       skill: "Python Scripting",
-      date: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
+      date: new Date(Date.now() + 2 * 60 * 60 * 1000),
       mode: "ONLINE",
       meetLink: "https://meet.google.com/py-learn-session",
     }
@@ -302,17 +299,15 @@ async function main() {
     const learner = findUser(s.learner);
     const skill = findSkill(s.skill);
 
-    await prisma.session.create({
-      data: {
-        teacherId: teacher.id,
-        learnerId: learner.id,
-        skillId: skill.id,
-        date: s.date,
-        durationMin: 60,
-        mode: "ONLINE",
-        status: "SCHEDULED",
-        meetLink: s.meetLink,
-      }
+    await Session.create({
+      teacherId: teacher.id,
+      learnerId: learner.id,
+      skillId: skill.id,
+      date: s.date,
+      durationMin: 60,
+      mode: "ONLINE",
+      status: SessionStatus.SCHEDULED,
+      meetLink: s.meetLink,
     });
   }
   console.log("Seeded 2 upcoming scheduled sessions.");
@@ -320,18 +315,18 @@ async function main() {
   // 5. Seed Swap Requests (3 pending requests)
   const requestsData = [
     {
-      sender: "user_demo_2", // Sofia Chen
-      receiver: "user_demo_8", // David Kim
+      sender: "user_demo_2",
+      receiver: "user_demo_8",
       message: "Hi David, I love your photography! I can teach you Figma in return for a photography basics crash course."
     },
     {
-      sender: "user_demo_7", // Maya Patel
-      receiver: "user_demo_2", // Sofia Chen
+      sender: "user_demo_7",
+      receiver: "user_demo_2",
       message: "Hey Sofia, let's connect! I need help with wireframing a logo. I can help you with script writing/copywriting."
     },
     {
-      sender: "user_demo_3", // Carlos Mendez
-      receiver: "user_demo_1", // Alex Rivera
+      sender: "user_demo_3",
+      receiver: "user_demo_1",
       message: "What's up Alex! I see you want to learn piano. I teach guitar and basic production. Let's trade for React?"
     }
   ];
@@ -340,25 +335,20 @@ async function main() {
     const sender = findUser(r.sender);
     const receiver = findUser(r.receiver);
 
-    await prisma.swapRequest.create({
-      data: {
-        senderId: sender.id,
-        receiverId: receiver.id,
-        message: r.message,
-        status: "PENDING"
-      }
+    await SwapRequest.create({
+      senderId: sender.id,
+      receiverId: receiver.id,
+      message: r.message,
+      status: RequestStatus.PENDING
     });
   }
   console.log("Seeded 3 pending swap requests.");
 
-  console.log("Seeding complete! Database is ready to use.");
+  console.log("Seeding complete! MongoDB is ready to use.");
+  await mongoose.disconnect();
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
