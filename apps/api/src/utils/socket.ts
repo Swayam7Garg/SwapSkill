@@ -4,9 +4,11 @@ let io: SocketIOServer | null = null;
 const userSockets = new Map<string, string>(); // Maps userId -> socketId
 
 export const initSocket = (server: any) => {
+  const sanitizeOrigin = (url?: string) => url ? url.trim().replace(/\/+$/, "") : "";
+
   const allowedOrigins = [
-    process.env.FRONTEND_BASE_URL,
-    process.env.FROTEND_BASE_URL,
+    sanitizeOrigin(process.env.FRONTEND_BASE_URL),
+    sanitizeOrigin(process.env.FROTEND_BASE_URL),
     "http://localhost:3000"
   ].filter(Boolean) as string[];
 
