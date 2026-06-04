@@ -120,20 +120,21 @@ export default function PublicProfilePage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto animate-fade-in">
       {/* Upper Panel: Avatar, info, quick action banner */}
-      <div className="glass-panel border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+      <div className="glass-panel border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
         {/* Glow */}
-        <div className="absolute top-0 right-0 bg-gradient-to-l from-primary/10 via-transparent to-transparent w-48 h-48 rounded-bl-full pointer-events-none" />
+        <div className="absolute top-0 right-0 bg-gradient-to-l from-accent/15 via-transparent to-transparent w-48 h-48 rounded-bl-full pointer-events-none animate-pulse" />
+        <div className="absolute bottom-0 left-0 bg-gradient-to-tr from-primary/5 via-transparent to-transparent w-36 h-36 rounded-tr-full pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
           <img
             src={profile.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg"}
             alt={profile.name}
-            className="w-24 h-24 rounded-full border-4 border-white/10 object-cover bg-white/5"
+            className="w-24 h-24 rounded-full border-4 border-white/10 object-cover bg-white/5 shadow-xl transition-transform hover:scale-105 duration-300"
           />
           <div className="space-y-2">
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">{profile.name}</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">{profile.name}</h1>
             <p className="text-sm text-white/50 flex items-center gap-1.5 justify-center md:justify-start">
-              <GraduationCap className="w-4.5 h-4.5 text-white/40 shrink-0" />
+              <GraduationCap className="w-4.5 h-4.5 text-accent shrink-0" />
               <span>{profile.college || "College Affiliated Student"}</span>
             </p>
             <div className="flex gap-1 items-center justify-center md:justify-start text-sm">
@@ -155,13 +156,13 @@ export default function PublicProfilePage() {
           {connectionStatus === "ACCEPTED" ? (
             <button
               onClick={() => setIsScheduleOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-xs font-bold text-white rounded-xl flex items-center gap-2 hover:opacity-95 transition-all shadow-lg shadow-primary/15 self-stretch justify-center"
+              className="px-6 py-3 bg-gradient-to-r from-primary via-secondary to-accent text-xs font-bold text-white rounded-xl flex items-center gap-2 hover:shadow-[0_0_20px_rgba(0,242,254,0.3)] transition-all hover:scale-[1.02] self-stretch justify-center duration-300"
             >
-              <Calendar className="w-4.5 h-4.5" />
+              <Calendar className="w-4.5 h-4.5 text-white" />
               <span>Schedule Swap Session</span>
             </button>
           ) : connectionStatus === "PENDING" ? (
-            <div className="px-5 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-400 flex items-center gap-2 justify-center">
+            <div className="px-5 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-400 flex items-center gap-2 justify-center shadow-inner">
               <Clock className="w-4.5 h-4.5 animate-pulse" />
               <span>Connection Request Pending</span>
             </div>
@@ -180,7 +181,7 @@ export default function PublicProfilePage() {
         <div className="lg:col-span-2 space-y-8">
           
           {/* Bio info */}
-          <div className="glass-panel border border-white/5 rounded-2xl p-6 space-y-4">
+          <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
             <h2 className="text-base font-bold text-white border-b border-white/5 pb-3">About {profile.name}</h2>
             <p className="text-xs text-white/70 leading-relaxed font-medium">
               {profile.bio || `${profile.name} hasn't written a biography yet.`}
@@ -188,7 +189,7 @@ export default function PublicProfilePage() {
           </div>
 
           {/* Teach Skills */}
-          <div className="glass-panel border border-white/5 rounded-2xl p-6 space-y-4">
+          <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
             <h3 className="text-sm font-bold text-white border-b border-white/5 pb-3">Skills {profile.name} Can Teach</h3>
             <div className="flex flex-wrap gap-2.5">
               {profile.teachSkills && profile.teachSkills.length > 0 ? (
@@ -202,7 +203,7 @@ export default function PublicProfilePage() {
           </div>
 
           {/* Learn Skills */}
-          <div className="glass-panel border border-white/5 rounded-2xl p-6 space-y-4">
+          <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
             <h3 className="text-sm font-bold text-white border-b border-white/5 pb-3">Skills {profile.name} Wants to Learn</h3>
             <div className="flex flex-wrap gap-2.5">
               {profile.learnSkills && profile.learnSkills.length > 0 ? (
@@ -217,18 +218,18 @@ export default function PublicProfilePage() {
 
           {/* Connect form (If connectionStatus === NONE) */}
           {connectionStatus === "NONE" && (
-            <div className="glass-panel border border-white/5 rounded-2xl p-6 space-y-4">
+            <div className="glass-card border border-white/5 rounded-2xl p-6 space-y-4 hover:border-accent/15">
               <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-                <MessageSquare className="w-4.5 h-4.5 text-primary" />
+                <MessageSquare className="w-4.5 h-4.5 text-accent animate-pulse" />
                 <span>Connect & Swap Skills</span>
               </h3>
 
               {requestSuccess ? (
-                <div className="p-4 bg-green-500/10 border border-green-500/25 text-green-400 rounded-xl flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5" />
+                <div className="p-4 bg-green-500/10 border border-green-500/25 text-green-400 rounded-xl flex items-center gap-3 shadow-inner">
+                  <CheckCircle2 className="w-5 h-5 text-green-450" />
                   <div>
                     <p className="text-xs font-bold">Request Sent Successfully!</p>
-                    <p className="text-[10px] text-green-400/80 mt-0.5">
+                    <p className="text-[10px] text-green-450 mt-0.5">
                       We notified {profile.name}. Once they accept, scheduling will unlock immediately.
                     </p>
                   </div>
@@ -243,14 +244,14 @@ export default function PublicProfilePage() {
                       placeholder="Ask them to swap! Tell them what skills you want to learn from them and what you can teach in return..."
                       rows={3}
                       maxLength={250}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary leading-relaxed resize-none"
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent leading-relaxed resize-none transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={submittingRequest}
-                    className="px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-xs font-bold text-white rounded-xl flex items-center gap-2 hover:opacity-95 transition-all disabled:opacity-50"
+                    className="px-5 py-2.5 bg-gradient-to-r from-primary via-secondary to-accent text-xs font-bold text-white rounded-xl flex items-center gap-2 hover:shadow-[0_0_15px_rgba(0,242,254,0.25)] transition-all disabled:opacity-50 hover:scale-[1.01]"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{submittingRequest ? "Sending Request..." : "Send Connection Request"}</span>

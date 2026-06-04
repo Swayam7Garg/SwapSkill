@@ -72,42 +72,42 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar Navigation */}
-      <aside className="w-64 glass-panel border-r border-white/5 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30">
+      <aside className="w-64 glass-panel border-r border-white/5 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30 shadow-[5px_0_25px_rgba(0,0,0,0.4)]">
         <div className="flex flex-col flex-1">
           {/* Logo */}
           <div className="h-16 flex items-center gap-2.5 px-6 border-b border-white/5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary via-secondary to-accent flex items-center justify-center shadow-lg shadow-accent/20 animate-pulse">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
-              Skill<span className="text-gradient-primary">Swap</span>
+              Skill<span className="text-gradient-cyan">Swap</span>
             </span>
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 px-4 py-6 flex flex-col gap-1.5 overflow-y-auto">
+          <nav className="flex-1 px-4 py-6 flex flex-col gap-2 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative ${
                     isActive
-                      ? "bg-white/5 text-white"
-                      : "text-white/60 hover:text-white hover:bg-white/[0.02]"
+                      ? "bg-gradient-to-r from-primary/10 via-secondary/5 to-accent/5 border border-white/10 text-white shadow-[0_0_15px_rgba(0,242,254,0.08)]"
+                      : "text-white/60 hover:text-white hover:bg-white/[0.03] hover:translate-x-1"
                   }`}
                 >
                   {/* Left glow line for active state */}
                   {isActive && (
-                    <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-gradient-to-b from-[#e91e8c] to-[#7c3aed]" />
+                    <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-gradient-to-b from-primary via-secondary to-accent shadow-[0_0_10px_rgba(0,242,254,0.6)]" />
                   )}
                   <item.icon
-                    className={`w-4 h-4 transition-transform group-hover:scale-105 ${
-                      isActive ? "text-primary" : "text-white/60 group-hover:text-white"
+                    className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                      isActive ? "text-accent animate-pulse" : "text-white/60 group-hover:text-white"
                     }`}
                   />
-                  {item.name}
+                  <span>{item.name}</span>
                 </Link>
               );
             })}

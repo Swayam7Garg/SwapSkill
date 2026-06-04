@@ -135,6 +135,7 @@ export default function BrowsePage() {
                 learnSkills={peer.learnSkills}
                 avgRating={peer.avgRating}
                 compatibilityScore={peer.compatibilityScore}
+                matchExplanation={peer.matchExplanation}
               />
             ))}
           </div>

@@ -272,35 +272,45 @@ export default function DashboardPage() {
             </div>
 
             {suggestedMatches && suggestedMatches.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 card-3d-wrapper">
                 {suggestedMatches.map((m: any) => (
-                  <div key={m.id} className="p-3.5 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] flex flex-col gap-3 transition-all group">
-                    <div className="flex items-center gap-3">
+                  <div key={m.id} className="card-3d glass-card p-4 rounded-2xl border border-white/5 bg-white/[0.01] flex flex-col gap-3 transition-all group preserve-3d">
+                    <div className="flex items-center gap-3 pop-depth-sm">
                       <img
                         src={m.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg"}
                         alt={m.name}
-                        className="w-10 h-10 rounded-full border border-white/10 object-cover bg-white/5"
+                        className="w-10 h-10 rounded-full border border-white/10 object-cover bg-white/5 transition-transform group-hover:scale-105"
                       />
                       <div className="min-w-0 flex-1">
-                        <Link href={`/profile/${m.id}`} className="text-xs font-bold text-white hover:underline truncate block">
+                        <Link href={`/profile/${m.id}`} className="text-xs font-bold text-white hover:text-accent hover:underline truncate block">
                           {m.name}
                         </Link>
                         <p className="text-[10px] text-white/40 truncate">{m.college}</p>
                       </div>
-                      <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-md animate-pulse shrink-0">
                         {m.compatibilityScore * 10}% match
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap gap-1">
+                    {m.matchExplanation && (
+                      <div className="pop-depth-md p-2.5 rounded-lg bg-accent/[0.02] border border-accent/10 text-[9px] text-accent/80 leading-relaxed shadow-[0_0_10px_rgba(0,242,254,0.02)]">
+                        <div className="flex items-center gap-1 font-semibold text-accent uppercase tracking-wider text-[8px] mb-0.5">
+                          <Zap className="w-2.5 h-2.5 text-accent animate-pulse" />
+                          <span>AI Explanation</span>
+                        </div>
+                        {m.matchExplanation}
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-1 pop-depth-sm">
                       {m.teachSkills.slice(0, 2).map((s: any) => (
                         <SkillChip key={s.id} name={s.name} category={s.category} size="sm" />
                       ))}
                     </div>
 
-                    <Link href={`/profile/${m.id}`} className="text-[10px] font-bold text-white/80 hover:text-white flex items-center gap-1 self-end group-hover:gap-1.5 transition-all">
+                    <Link href={`/profile/${m.id}`} className="pop-depth-md text-[10px] font-bold text-white/80 hover:text-accent flex items-center gap-1 self-end group-hover:gap-1.5 transition-all">
                       <span>Send Request</span>
-                      <ArrowRight className="w-3 h-3" />
+                      <ArrowRight className="w-3 h-3 text-accent" />
                     </Link>
                   </div>
                 ))}
