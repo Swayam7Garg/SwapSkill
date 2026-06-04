@@ -14,7 +14,8 @@ export const initSocket = (server: any) => {
 
   io = new SocketIOServer(server, {
     cors: {
-      origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
+      origin: true,
+      credentials: true,
       methods: ["GET", "POST", "PATCH", "DELETE"]
     }
   });
