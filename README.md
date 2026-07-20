@@ -3,7 +3,7 @@
 ExchangeSkill is a secure, real-time, peer-to-peer skill exchange platform designed for college students to swap their knowledge (coding, design, music, language, sports, academics, etc.) with zero monetary cost.
 
 * **Live URL:** [https://swap-skill-web-dvdz.vercel.app/](https://swap-skill-web-dvdz.vercel.app/)
-* **Team Members:** Swayam Garg
+* **Team Members:** Swayam Garg, Ajay Kumar Sahani, Yahs Suroshe
 
 ---
 
